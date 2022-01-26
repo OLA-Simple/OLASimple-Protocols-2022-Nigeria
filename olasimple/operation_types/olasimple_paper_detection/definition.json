@@ -1,0 +1,41 @@
+{
+  "name": "OLASimple Paper Detection",
+  "parent_class": "OperationType",
+  "category": "OLASimple",
+  "inputs": [
+    {
+      "name": "Ligation Product",
+      "part": false,
+      "array": false,
+      "routing": "LP",
+      "ftype": "sample",
+      "choices": null,
+      "required": null,
+      "allowable_field_types": [
+        {
+          "sample_type": "OLASimple Sample",
+          "object_type": "OLA Ligation Stripwell"
+        }
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "name": "Detection Strip",
+      "part": false,
+      "array": false,
+      "routing": "LP",
+      "ftype": "sample",
+      "choices": null,
+      "required": null,
+      "allowable_field_types": [
+        {
+          "sample_type": "OLASimple Sample",
+          "object_type": "OLA Detection Strips"
+        }
+      ]
+    }
+  ],
+  "on_the_fly": false,
+  "user_id": 1
+}

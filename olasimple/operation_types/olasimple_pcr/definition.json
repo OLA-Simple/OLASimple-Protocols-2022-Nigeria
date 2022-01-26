@@ -1,0 +1,41 @@
+{
+  "name": "OLASimple PCR",
+  "parent_class": "OperationType",
+  "category": "OLASimple",
+  "inputs": [
+    {
+      "name": "Patient Sample",
+      "part": false,
+      "array": false,
+      "routing": "P",
+      "ftype": "sample",
+      "choices": null,
+      "required": null,
+      "allowable_field_types": [
+        {
+          "sample_type": "OLASimple Sample",
+          "object_type": "OLA viral RNA"
+        }
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "name": "PCR Product",
+      "part": false,
+      "array": false,
+      "routing": "P",
+      "ftype": "sample",
+      "choices": null,
+      "required": null,
+      "allowable_field_types": [
+        {
+          "sample_type": "OLASimple Sample",
+          "object_type": "OLA PCR"
+        }
+      ]
+    }
+  ],
+  "on_the_fly": false,
+  "user_id": 1
+}

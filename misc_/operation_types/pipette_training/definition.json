@@ -1,0 +1,9 @@
+{
+  "name": "Pipette Training",
+  "parent_class": "OperationType",
+  "category": "Misc.",
+  "inputs": [],
+  "outputs": [],
+  "on_the_fly": false,
+  "user_id": 1
+}

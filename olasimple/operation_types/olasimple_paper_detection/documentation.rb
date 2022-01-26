@@ -1,0 +1,3 @@
+Samples from the OLASimple ligation protocol are added onto paper detection strips. Then, an an image of the strips is scanned and uploaded. The strips will detect whether the sample has drug resistance mutations, and the protocol will extract this information using computer vision.
+
+This protocol relies on an image processing service available at the URL given in the OLAConstants library as `OLA_IP_API_URL`.

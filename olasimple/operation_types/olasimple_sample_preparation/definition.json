@@ -1,0 +1,46 @@
+{
+  "name": "OLASimple Sample Preparation",
+  "parent_class": "OperationType",
+  "category": "OLASimple",
+  "inputs": [
+    {
+      "name": "Patient Sample Identifier",
+      "part": false,
+      "array": false,
+      "routing": null,
+      "ftype": "string",
+      "choices": null,
+      "required": null,
+      "allowable_field_types": []
+    },
+    {
+      "name": "Kit Identifier",
+      "part": false,
+      "array": false,
+      "routing": null,
+      "ftype": "string",
+      "choices": null,
+      "required": null,
+      "allowable_field_types": []
+    }
+  ],
+  "outputs": [
+    {
+      "name": "Patient Sample",
+      "part": false,
+      "array": false,
+      "routing": "S",
+      "ftype": "sample",
+      "choices": null,
+      "required": null,
+      "allowable_field_types": [
+        {
+          "sample_type": "OLASimple Sample",
+          "object_type": "OLA plasma"
+        }
+      ]
+    }
+  ],
+  "on_the_fly": false,
+  "user_id": 1
+}

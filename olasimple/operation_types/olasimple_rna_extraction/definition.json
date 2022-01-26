@@ -1,0 +1,41 @@
+{
+  "name": "OLASimple RNA Extraction",
+  "parent_class": "OperationType",
+  "category": "OLASimple",
+  "inputs": [
+    {
+      "name": "Plasma",
+      "part": false,
+      "array": false,
+      "routing": "C",
+      "ftype": "sample",
+      "choices": null,
+      "required": null,
+      "allowable_field_types": [
+        {
+          "sample_type": "OLASimple Sample",
+          "object_type": "OLA plasma"
+        }
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "name": "Viral RNA",
+      "part": false,
+      "array": false,
+      "routing": "C",
+      "ftype": "sample",
+      "choices": null,
+      "required": null,
+      "allowable_field_types": [
+        {
+          "sample_type": "OLASimple Sample",
+          "object_type": "OLA viral RNA"
+        }
+      ]
+    }
+  ],
+  "on_the_fly": false,
+  "user_id": 1
+}

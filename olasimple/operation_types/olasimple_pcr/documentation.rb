@@ -1,0 +1,1 @@
+Generate PCR products from cell lysate which will be used later to detect HIV mutations.

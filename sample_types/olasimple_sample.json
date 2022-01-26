@@ -1,0 +1,24 @@
+{
+  "name": "OLASimple Sample",
+  "description": "Patient sample and OLA kit",
+  "field_types": [
+    {
+      "name": "Patient ID",
+      "part": null,
+      "array": false,
+      "routing": null,
+      "ftype": "string",
+      "choices": null,
+      "required": false
+    },
+    {
+      "name": "Secondary Patient ID",
+      "part": null,
+      "array": false,
+      "routing": null,
+      "ftype": "string",
+      "choices": null,
+      "required": false
+    }
+  ]
+}

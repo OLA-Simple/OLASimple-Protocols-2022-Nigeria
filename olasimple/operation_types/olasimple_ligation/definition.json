@@ -1,0 +1,41 @@
+{
+  "name": "OLASimple Ligation",
+  "parent_class": "OperationType",
+  "category": "OLASimple",
+  "inputs": [
+    {
+      "name": "PCR Product",
+      "part": false,
+      "array": false,
+      "routing": "PP",
+      "ftype": "sample",
+      "choices": null,
+      "required": null,
+      "allowable_field_types": [
+        {
+          "sample_type": "OLASimple Sample",
+          "object_type": "OLA PCR"
+        }
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "name": "Ligation Product",
+      "part": false,
+      "array": false,
+      "routing": "PP",
+      "ftype": "sample",
+      "choices": null,
+      "required": null,
+      "allowable_field_types": [
+        {
+          "sample_type": "OLASimple Sample",
+          "object_type": "OLA Ligation Stripwell"
+        }
+      ]
+    }
+  ],
+  "on_the_fly": false,
+  "user_id": 1
+}
