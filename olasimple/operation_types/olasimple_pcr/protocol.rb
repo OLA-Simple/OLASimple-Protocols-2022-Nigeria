@@ -60,12 +60,12 @@ class Protocol
   }
 
   MATERIALS = [
-    'P200 pipette and filtered tips',
     'P20 pipette and filtered tips',
     'a timer',
     'gloves (wear tight gloves to reduce contamination risk)',
-    'pre-PCR rack',
+    'post-PCR rack',
     'a balancing tube (on rack)',
+    'waste bag',
     'vortex',
     'centrifuge'
   ].freeze
@@ -106,7 +106,7 @@ class Protocol
     kit_introduction(operations.running)
     record_technician_id
     safety_warning
-    area_preparation('pre-PCR', MATERIALS, POST_PCR)
+    area_preparation('post-PCR', MATERIALS, POST_PCR)
     simple_clean("OLASimple PCR")
     get_inputs(operations.running)
     validate_pcr_inputs(operations.running)
@@ -121,7 +121,7 @@ class Protocol
     resuspend_pcr_mix(sorted_ops.running)
     add_template_to_master_mix(sorted_ops.running)
   
-    cleanup(sorted_ops)
+    #cleanup(sorted_ops) Removed per Jordan's edits
     start_thermocycler(sorted_ops.running)
     wash_self
     accept_comments
@@ -165,7 +165,7 @@ class Protocol
   def kit_introduction(ops)
     show do
       title "Welcome to OLASimple PCR"
-      note 'You will be running the OLASimple PCR protocol. You will start with RNA Extraction products and will generate PCR products from the samples and use them later to detect HIV mutations.'
+      note 'You will be running the OLASimple PCR protocol. You will start with cDNA generated from extracted RNA samples will generate PCR products and use them later to detect HIV mutations.'
     end
   end
 
@@ -196,7 +196,7 @@ class Protocol
     # TODO: remove all references to 4C fridge and replace with refridgerator
     gops = group_packages(myops)
     show do
-      title "Take #{PCR_PKG_NAME.pluralize(gops.length)} from the #{FRIDGE_PRE} and place on the #{BENCH_PRE}"
+      title "Take #{PCR_PKG_NAME.pluralize(gops.length)} from the #{FRIDGE_PRE} with a Paper Towel and place on the #{BENCH_POST}"
       # check "Take the following from the #{FRIDGE} and place #{pluralizer(PACKAGE, gops.length)} on the #{BENCH}"
       gops.each do |unit, _ops|
         check 'Take package ' "#{unit.bold}" ' from fridge.'
@@ -295,7 +295,7 @@ class Protocol
         raw transfer_title_proc(PCR_MIX_VOLUME, from, tos.to_sentence)
         # title "Add #{PCR_MIX_VOLUME}uL from #{DILUENT_A} #{from.bold} to #{PCR_SAMPLE} #{to.bold}"
         note "#{DILUENT_A} will be used to dissolve the PCR mix in the #{PCR_SAMPLE}s."
-        note "Use a #{P200_PRE} pipette and set it to <b>[0 4 0]</b>."
+        note "Use a #{P200_POST} pipette and set it to <b>[0 4 0]</b>."
         note 'Avoid touching the inside of the lid, as this could cause contamination. '
         tos.each do |to|
           check "Transfer #{PCR_MIX_VOLUME}uL from #{from.bold} into #{to.bold}"
@@ -331,9 +331,9 @@ class Protocol
         show do
           raw transfer_title_proc(SAMPLE_VOLUME, "#{SAMPLE_ALIAS} #{from}", "#{PCR_SAMPLE} #{to}")
           note "Carefully open tube #{from.bold} and tube #{to.bold}"
-          note "Use a #{P20_PRE} pipette and set it to <b>[1 0 0]</b>."
+          note "Use a #{P20_POST} pipette and set it to <b>[1 0 0]</b>."
           check "Transfer #{SAMPLE_VOLUME}uL from #{from.bold} into #{to.bold}"
-          img = make_transfer(tubeS, tubeP, 300, "#{SAMPLE_VOLUME}uL", "(#{P20_PRE} pipette)")
+          img = make_transfer(tubeS, tubeP, 300, "#{SAMPLE_VOLUME}uL", "(#{P20_POST} pipette)")
           img.translate!(25)
           note display_svg(img, 0.75)
           check 'Close tubes and discard pipette tip'
@@ -396,7 +396,7 @@ class Protocol
     all_refs = temp_items + item_refs
 
     show do
-      title "Discard items into the #{WASTE_POST}"
+      title "Discard items into the trash"
 
       note "Discard the following items into the #{WASTE_POST}"
       all_refs.each { |r| bullet r }

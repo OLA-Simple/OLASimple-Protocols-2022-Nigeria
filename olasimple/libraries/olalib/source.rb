@@ -690,6 +690,7 @@ module OLALib
       check 'Put on lab coat.'
       check "Put on #{(area && area == PRE_PCR) ? 'layers of ' : ''}gloves."
       bullet 'Make sure to use tight gloves. Tight gloves reduce the chance of the gloves getting caught on the tubes when closing their lids.'
+      bullet 'Change gloves after touching any common space surface to reduce contamination (such as a refrigerator door handle).'
       if area && area == PRE_PCR
         bullet 'Change outer layer of gloves after handling infectious sample and before touching surfaces outside of the BSC (such as a refrigerator door handle).'
       end
