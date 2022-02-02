@@ -24,7 +24,8 @@ class Protocol
   UNIT = 'S'
   OUTPUT_COMPONENT = ''
   PLASMA_LOCATION = '-80 freezer'
-  SAMPLE_VOLUME = 380
+  SAMPLE_VOLUME = 140 
+  #SAMPLE_VOLUME = 380
 
   def main
     operations.make
@@ -125,7 +126,6 @@ class Protocol
     show do
       title 'You will need the following supplies in the BSC'
       materials = [
-        'P1000 pipette and filter tips',
         'P200 pipette and filter tips',
         'P20 pipette and filter tips',
         'Pipette controller and 10mL serological pipette',
@@ -146,7 +146,7 @@ class Protocol
   def retrieve_package(this_package)
     show do
       title "Retrieve Package #{this_package.bold}"
-      check "Grab #{this_package} from the #{FRIDGE_PRE} and place inside the BSC"
+      check "Take #{this_package} from the #{FRIDGE_PRE} and place inside the BSC with a Paper Towel"
       # check 'Remove the <b>outside layer</b> of gloves (since you just touched the handle).'
       # check 'Put on a new outside layer of gloves.'
     end
@@ -157,6 +157,7 @@ class Protocol
       img = kit_image(ops)
       check 'Check that the following are in the pack:'
       note display_svg(img, 0.75)
+      check 'Discard the packaging material.'
     end
   end
 
@@ -204,10 +205,10 @@ class Protocol
       transfer_img = make_transfer(from_tubes_open[i], to_tubes_open[i], 250, "#{SAMPLE_VOLUME}ul", "(#{P1000_PRE})").translate(100, 0)
       show do
         title "Transfer #{from_names[i]} to #{to_names[i]}"
-        note "Use a #{P1000_PRE} pipette and set it to <b>[3 8 0]</b>."
-        check "Transfer <b>#{SAMPLE_VOLUME}uL</b> from <b>#{from_names[i]}</b> to <b>#{to_names[i]}</b> using a #{P1000_PRE} pipette."
+        note "Use a #{P200_PRE} pipette and set it to <b>[1 4 0]</b>."
+        check "Transfer <b>#{SAMPLE_VOLUME}uL</b> from <b>#{from_names[i]}</b> to <b>#{to_names[i]}</b> using a #{P200_PRE} pipette."
         note display_svg(transfer_img, 0.75)
-        check "Discard pipette tip into #{WASTE_PRE}"
+        check "Discard pipette tip into #{WASTE_PRE} to reduce chance of contamination."
         check "Close both tubes."
       end
     end
