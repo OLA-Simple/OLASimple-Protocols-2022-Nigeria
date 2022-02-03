@@ -29,7 +29,7 @@ class Protocol
   INPUT = 'PCR Product'
   OUTPUT = 'Ligation Product'
   PACK = 'Ligation Pack'
-  A = 'Diluent A'
+  A = 'Diluent A' #Update to be LO??
 
   ##########################################
   # TERMINOLOGY
@@ -104,6 +104,7 @@ class Protocol
     vortex_and_centrifuge_samples(sorted_ops.running)
     add_template(sorted_ops.running, expert_mode)
     vortex_and_centrifuge_samples(sorted_ops.running)
+
     cleanup(sorted_ops)
     start_ligation(sorted_ops.running)
     wash_self
@@ -173,6 +174,7 @@ class Protocol
         check "Retrieve #{PACKAGE_POST} #{unit.bold}"
       end
       check "Place #{pluralizer(PACKAGE_POST, gops.length)} on the #{BENCH_POST}."
+      note "If you touched the refrigerator handle to remove the samples, put on a new outside layer of gloves."
     end
   end
 
@@ -280,9 +282,9 @@ class Protocol
             labels.map! { |l| "<b>#{l}</b>" }
             note "In this step we will be adding #{LIGATION_VOLUME}uL of #{DILUENT_A} #{from} into #{pluralizer('tube', COMPONENTS.length)} "
             "of the colored strip of tubes labeled <b>#{labels[0]} to #{labels[-1]}</b>"
-            note "Set a #{P200_POST} pipette to [0 2 4]."
+            note "Set a #{P200_POST} pipette to [2 0 0]."
             note "Using #{P200_POST} add #{LIGATION_VOLUME}uL from #{DILUENT_A} #{from} into each of the #{COMPONENTS.length} tubes."
-            warning 'Only open one of the ligation tubes at a time.'
+            warning "Only open one of the ligation tubes at a time and discard. Change your pipette tip after every transfer of #{DILUENT_A}."
 
             ligation_tubes = display_ligation_tubes(*op.output_tokens(OUTPUT), COLORS).translate!(0, -20)
 
@@ -376,8 +378,9 @@ class Protocol
           show do
             raw transfer_title_proc(SAMPLE_VOLUME, from, op.temporary[:label_string])
             warning 'Change pipette tip between tubes'
-            check "Using a P2 pipette set to [1 2 0]."
+            check "Using a P20 pipette set to [0 4 0]."
             note "Add #{SAMPLE_VOLUME}uL from #{from.bold} into each of #{op.temporary[:label_string].bold}. Only open one ligation tube at a time."
+            note "Discard pipette tip between each tube."
 
             transfer_image = make_transfer(tubeP, ligation_tubes, 300, "#{SAMPLE_VOLUME}uL", "(Post-PCR P2 pipette)")
             note display_svg(transfer_image, 0.6)
@@ -441,16 +444,16 @@ class Protocol
     add_to_thermocycler('sample', ops.length * COMPONENTS.length, LIG_CYCLE, ligation_cycle_table, 'Ligation')
 
     show do
-      title 'Set a timer for 45 minutes'
+      title 'Set a timer for 35 minutes'
       #   check "Return to the #{PRE_PCR}."
-      check 'Find a timer and set it for 45 minutes. Continue to next step.'
+      check 'Find a timer and set it for 35 minutes. Continue to next step.'
     end
   end
 
   def ligation_cycle_table
     t = Table.new
     cycles_temp = "<table style=\"width:100%\">
-                        <tr><td>95C</td></tr>
+                        <tr><td>94</td></tr>
                         <tr><td>37C</td></tr>
           </table>"
     cycles_time = "<table style=\"width:100%\">

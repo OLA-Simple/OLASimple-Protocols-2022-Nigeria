@@ -605,7 +605,7 @@ module OLALib
     show do
       title "Vortex and #{CENTRIFUGE_VERB} #{sample_identifier.pluralize(num)}"
       note mynote unless mynote.nil?
-      warning "Close tube caps."
+      warning "Close all tube caps."
       # note "Using #{sample_identifier.pluralize(num)} #{sample_labels.join(', ').bold}:"
       raw vortex_proc(sample_identifier, sample_labels, vortex_time, vortex_reason)
       raw centrifuge_proc(sample_identifier, sample_labels, spin_time, spin_reason, area)
