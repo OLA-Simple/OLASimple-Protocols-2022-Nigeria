@@ -658,7 +658,7 @@ module OLALib
     show do
       title 'Ensure Workspace is Clean'
       note "#{protocol} is prone to contamination. False positives can occur when the area is not clean."
-      check "If area is not clean, or you aren't sure, wipe down space with 10% bleach and 70% ethanol."
+      check "If the area is not clean, or you aren't sure, wipe the space down with 10% bleach and 70% ethanol."
       note 'Spray disinfectants onto wipes, not directly onto surfaces.'
       warning 'Only spray bleach and ethanol when all tubes are closed. Bleach can inhibit the reactions.'
     end

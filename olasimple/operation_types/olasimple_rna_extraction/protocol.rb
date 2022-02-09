@@ -79,8 +79,11 @@ class Protocol
     open_package(this_package)
 
     fill_ethanol
-    prepare_buffers
+
+    prepare_buffers # this has a large section commented out
+    
     lyse_samples
+    
     remove_outer_layer
     incubate_lysed_samples(operations)
     add_ethanol
@@ -165,7 +168,7 @@ class Protocol
   def introduction
     show do
       title 'Welcome to OLASimple RNA Extraction'
-      note 'In this protocol you will lyse and purify RNA from HIV-infected plasma.'
+      note 'In this protocol you will lyse viral particles and purify RNA from HIV-infected plasma.'
       # image of tubes
     end
 
@@ -179,7 +182,7 @@ class Protocol
 
     show do
       title 'Required Reagent (not provided)'
-      check 'Before starting this protocol, make sure you have access to molecular grade ethanol (~10 mL).'
+      check 'Before starting this protocol, make sure you have access to molecular grade ethanol (~10 mL, 200 proof).'
       note 'Do not use other grades of ethanol as this will negatively affect the RNA extraction yield.'
       note 'Soon, using a serological pipette, we will transfer 4ml of the molecular grade ethanol to the provided ethanol container in the kit.'
       note display_ethanol_question_svg
@@ -206,7 +209,7 @@ class Protocol
         'gloves',
         'Pipette controller and 10mL serological pipette',
         'Vortex mixer',
-        'Minifuge',
+        'Centrifuge',
         'Cold tube rack',
         '70% v/v Ethanol spray for cleaning',
         '10% v/v Bleach spray for cleaning',
@@ -300,6 +303,7 @@ class Protocol
 
   # helper method for simple transfers in this protocol
   def transfer_and_vortex(title, from, to, volume_ul, warning: nil, to_svg: nil, from_svg: nil, skip_centrifuge: false, extra_check: nil)
+
     pipette, extra_note, setting_instruction = pipette_decision(volume_ul)
 
     if to.is_a?(Array) # MULTI TRANSFER
@@ -404,37 +408,37 @@ class Protocol
     end
 
     # add sa water to dtt/trna
-    transfer_and_vortex(
-      "Prepare #{DTT}",
-      SA_WATER,
-      DTT,
-      25,
-      from_svg: :E4_open,
-      to_svg: :E0_open_dry
-    )
+#    transfer_and_vortex(
+#      "Prepare #{DTT}",
+#      SA_WATER,
+#      DTT,
+#      25,
+#      from_svg: :E4_open,
+#      to_svg: :E0_open_dry
+#    )
 
     # add dtt solution to lysis buffer
 
-    lysis_buffers = operations.map { |op| "#{LYSIS_BUFFER}-#{op.temporary[:output_sample]}" }
-    transfer_and_vortex(
-      "Prepare Lysis Buffers #{lysis_buffers.to_sentence}",
-      DTT,
-      lysis_buffers,
-      10,
-      from_svg: :E0_open_wet,
-      to_svg: :E1_open,
-      skip_centrifuge: true
-    )
+#    lysis_buffers = operations.map { |op| "#{LYSIS_BUFFER}-#{op.temporary[:output_sample]}" }
+#    transfer_and_vortex(
+#      "Prepare Lysis Buffers #{lysis_buffers.to_sentence}",
+#      DTT,
+#      lysis_buffers,
+#      10,
+#      from_svg: :E0_open_wet,
+#      to_svg: :E1_open,
+#      skip_centrifuge: true
+#    )
 
     # prepare wash buffer 2 with ethanaol
-    transfer_and_vortex(
-      "Prepare #{WASH2}",
-      ETHANOL,
-      WASH2,
-      1600,
-      from_svg: :ethanol_container_open,
-      to_svg: :E3_open
-    )
+#    transfer_and_vortex(
+#      "Prepare #{WASH2}",
+#      ETHANOL,
+#      WASH2,
+#      1600,
+#      from_svg: :ethanol_container_open,
+#      to_svg: :E3_open
+#    )
   end
 
   SAMPLE_VOLUME = 350
@@ -461,7 +465,7 @@ class Protocol
 
   def incubate_lysed_samples(ops)
     lysed_samples = ops.map { |op| "#{LYSIS_BUFFER}-#{op.temporary[:output_sample]}" }
-    incubate(lysed_samples, '15 minutes')
+    incubate(lysed_samples, '10 minutes')
   end
 
   ETHANOL_BUFFER_VOLUME = 1400
