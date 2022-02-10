@@ -131,7 +131,7 @@ class Protocol
         'Pipette controller and 10mL serological pipette',
         'gloves',
         'Vortex mixer',
-        'Minifuge',
+        'Centrifuge',
         'Cold tube rack',
         '70% v/v Ethanol spray for cleaning',
         '10% v/v Bleach spray for cleaning',
@@ -202,7 +202,7 @@ class Protocol
     to_tubes, to_names = kit_tubes(ops)
     ops.each_with_index do |_op, i|
       pre_transfer_validation_with_multiple_tries(from_names[i], to_names[i], from_tubes[i], to_tubes[i])
-      transfer_img = make_transfer(from_tubes_open[i], to_tubes_open[i], 250, "#{SAMPLE_VOLUME}ul", "(#{P1000_PRE})").translate(100, 0)
+      transfer_img = make_transfer(from_tubes_open[i], to_tubes_open[i], 250, "#{SAMPLE_VOLUME}ul", "(#{P200_PRE})").translate(100, 0)
       show do
         title "Transfer #{from_names[i]} to #{to_names[i]}"
         note "Use a #{P200_PRE} pipette and set it to <b>[1 4 0]</b>."

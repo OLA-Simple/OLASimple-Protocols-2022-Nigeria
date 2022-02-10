@@ -633,7 +633,7 @@ module OLALib
   def clean_area(area)
     show do
       disinfectant = '10% bleach'
-      title "Wipe down #{area} with #{disinfectant.bold}."
+      title "Wipe down the #{area} area with #{disinfectant.bold}."
       note "Now you will wipe down your #{area} space and equipment with #{disinfectant.bold}."
       check "Spray #{disinfectant.bold} onto a #{WIPE} and clean off pipettes and pipette tip boxes."
       check "Spray #{disinfectant.bold} onto a #{WIPE} and wipe down the bench surface."
