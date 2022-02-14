@@ -1,12 +1,11 @@
 # frozen_string_literal: true
 
-##########################################
 #
 #
 # OLASimple PCR
 # author: Justin Vrana
 # date: March 2018
-#
+# 
 #
 ##########################################
 
@@ -41,6 +40,7 @@ class Protocol
   # Protocol Specifics
   ##########################################
 
+  this_package = prepare_protocol_operations
   PACK_HASH = PCR_UNIT
   AREA = PRE_PCR
   SAMPLE_VOLUME = 10 # volume of sample to add to PCR mix
@@ -60,14 +60,12 @@ class Protocol
   }
 
   MATERIALS = [
-    'P20 pipette and filtered tips',
-    'a timer',
-    'gloves (wear tight gloves to reduce contamination risk)',
-    'post-PCR rack',
-    'a balancing tube (on rack)',
-    'waste bag',
-    'vortex',
-    'centrifuge'
+    'P20 pipette and filter tips',
+    'Gloves (wear tight gloves to reduce contamination risk)',
+    'Centrifuge',
+    '70% v/v Ethanol Spray for cleaning',
+    '10% v/v Bleach Spray for cleaning',
+    'Molecular Grade Ethanol'
   ].freeze
 
   SAMPLE_ALIAS = 'RNA Extract'
@@ -106,8 +104,10 @@ class Protocol
     kit_introduction(operations.running)
     record_technician_id
     safety_warning
-    area_preparation('post-PCR', MATERIALS, POST_PCR)
-    simple_clean("OLASimple PCR")
+    area_preparation('pre-PCR', MATERIALS, PRE_PCR)
+    simple_clean("OLASimple RT Module")
+    retrieve_package(this_package)
+    
     get_inputs(operations.running)
     validate_pcr_inputs(operations.running)
     get_pcr_packages(operations.running)
@@ -158,13 +158,47 @@ class Protocol
     operations.sort_by { |op| op.output_ref(OUTPUT) }.extend(OperationList)
   end
 
+  def prepare_protocol_operations
+    if operations.length > BATCH_SIZE
+      raise "Batch size > #{BATCH_SIZE} is not supported for this protocol. Please rebatch."
+    end
+
+    operations.make.retrieve interactive: false
+
+    if debug
+      labels = %w[001 002]
+      operations.each.with_index do |op, i|
+        op.input(INPUT).item.associate(SAMPLE_KEY, labels[i])
+        op.input(INPUT).item.associate(COMPONENT_KEY, PREV_COMPONENT)
+        op.input(INPUT).item.associate(UNIT_KEY, PREV_UNIT)
+        op.input(INPUT).item.associate(KIT_KEY, 'K001')
+        op.input(INPUT).item.associate(PATIENT_KEY, 'a patient id')
+      end
+    end
+    save_temporary_input_values(operations, INPUT)
+    operations.each do |op|
+      op.temporary[:pack_hash] = PACK_HASH
+    end
+    save_temporary_output_values(operations)
+
+    operations.each do |op|
+      op.make_item_and_alias(OUTPUT, 'rna extract tube', INPUT)
+    end
+
+    kits = operations.running.group_by { |op| op.temporary[:input_kit] }
+    this_package = kits.keys.first + THIS_UNIT
+    raise 'More than one kit is not supported by this protocol. Please rebatch.' if kits.length > 1
+
+    this_package
+  end
+
   #######################################
   # Instructions
   #######################################
 
   def kit_introduction(ops)
     show do
-      title "Welcome to OLASimple RT Module"
+      title "Welcome to OLASimple RT Module (Reverse Transcription)"
       note 'In this protocol you will be converting the RNA generated in the E module into cDNA.'
     end
   end
