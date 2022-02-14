@@ -184,7 +184,7 @@ class Protocol
       title 'Required Reagent (not provided)'
       check 'Before starting this protocol, make sure you have access to molecular grade ethanol (~10 mL, 200 proof).'
       note 'Do not use other grades of ethanol as this will negatively affect the RNA extraction yield.'
-      note 'Soon, using a serological pipette, we will transfer 4ml of the molecular grade ethanol to the provided ethanol container in the kit.'
+      note 'Soon, using a serological pipette, you will transfer 4ml of the molecular grade ethanol to the provided ethanol container in the kit.'
       note display_ethanol_question_svg
     end
   end
@@ -224,7 +224,7 @@ class Protocol
   def retrieve_package(this_package)
     show do
       title "Retrieve package"
-      check "Grab package #{this_package.bold} from the #{FRIDGE_PRE} and place in the #{BSC}"
+      check "Take package #{this_package.bold} from the #{FRIDGE_PRE} and place in the #{BSC}"
     end
   end
 
@@ -304,8 +304,9 @@ class Protocol
   # helper method for simple transfers in this protocol
   def transfer_and_vortex(title, from, to, volume_ul, warning: nil, to_svg: nil, from_svg: nil, skip_centrifuge: false, extra_check: nil)
 
-    pipette, extra_note, setting_instruction = pipette_decision(volume_ul)
-
+    #pipette, extra_note, setting_instruction = pipette_decision(volume_ul)
+    pipette, extra_note, setting_instruction = "P20", nil, "Set P20 pipette to [0 5 6]"  
+    
     if to.is_a?(Array) # MULTI TRANSFER
       img = nil
       if from_svg && to_svg
