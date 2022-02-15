@@ -165,7 +165,7 @@ class Protocol
   def kit_introduction(ops)
     show do
       title "Welcome to OLASimple PCR"
-      note 'You will be running the OLASimple PCR protocol. You will start with cDNA generated from extracted RNA samples will generate PCR products and use them later to detect HIV mutations.'
+      note 'You will be running the OLASimple PCR protocol. You will start with cDNA generated from the RNA samples extracted during the RT Module and will generate PCR products to use later to detect HIV mutations.'
     end
   end
 
