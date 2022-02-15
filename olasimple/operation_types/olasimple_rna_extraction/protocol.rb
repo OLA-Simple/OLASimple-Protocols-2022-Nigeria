@@ -82,8 +82,7 @@ class Protocol
 
     prepare_buffers # this has a large section commented out
     
-    lyse_samples
-    
+    lyse_samples 
     remove_outer_layer
     incubate_lysed_samples(operations)
     add_ethanol
@@ -169,7 +168,6 @@ class Protocol
     show do
       title 'Welcome to OLASimple RNA Extraction'
       note 'In this protocol you will lyse viral particles and purify RNA from HIV-infected plasma.'
-      # image of tubes
     end
 
     show do
@@ -177,7 +175,6 @@ class Protocol
       note 'RNA is prone to degradation by RNase present in our eyes, skin, and breath.'
       note 'Avoid opening tubes outside the Biosafety Cabinet (BSC).'
       bullet 'Change gloves whenever you suspect potential RNAse contamination'
-      # show image of gloves
     end
 
     show do
@@ -304,8 +301,8 @@ class Protocol
   # helper method for simple transfers in this protocol
   def transfer_and_vortex(title, from, to, volume_ul, warning: nil, to_svg: nil, from_svg: nil, skip_centrifuge: false, extra_check: nil)
 
-    #pipette, extra_note, setting_instruction = pipette_decision(volume_ul)
-    pipette, extra_note, setting_instruction = "P20", nil, "Set P20 pipette to [0 5 6]"  
+    pipette, extra_note, setting_instruction = pipette_decision(volume_ul)
+   # pipette, extra_note, setting_instruction = "P20", nil, "Set P20 pipette to [0 5 6]"  
     
     if to.is_a?(Array) # MULTI TRANSFER
       img = nil
@@ -420,26 +417,40 @@ class Protocol
 
     # add dtt solution to lysis buffer
 
-#    lysis_buffers = operations.map { |op| "#{LYSIS_BUFFER}-#{op.temporary[:output_sample]}" }
-#    transfer_and_vortex(
-#      "Prepare Lysis Buffers #{lysis_buffers.to_sentence}",
-#      DTT,
-#      lysis_buffers,
-#      10,
-#      from_svg: :E0_open_wet,
-#      to_svg: :E1_open,
-#      skip_centrifuge: true
-#    )
+    lysis_buffers = operations.map { |op| "#{LYSIS_BUFFER}-#{op.temporary[:output_sample]}" }
+ 
+    #   show do
+ #     note 'Carrier RNA REHYDRATION STEP IS TO BE DONE BY TEAM PRIOR TO HAVING TECHS START'
+ #   end 
 
-    # prepare wash buffer 2 with ethanaol
-#    transfer_and_vortex(
-#      "Prepare #{WASH2}",
-#      ETHANOL,
-#      WASH2,
-#      1600,
-#      from_svg: :ethanol_container_open,
-#      to_svg: :E3_open
-#    )
+    transfer_and_vortex(
+      "Prepare Lysis Buffers #{lysis_buffers.to_sentence}",
+      DTT, #E0
+      lysis_buffers,
+      5.6,
+      from_svg: :E0_open_wet,
+      to_svg: :E1_open,
+      skip_centrifuge: true
+    )
+
+#   prepare wash buffer 2 with ethanaol
+    transfer_and_vortex(
+      "Prepare Buffers #{WASH1} and #{WASH2}",
+      ETHANOL,
+      WASH1,
+      680,
+      from_svg: :ethanol_container_open,
+      to_svg: :E3_open
+    )
+    
+    transfer_and_vortex(
+      "Prepare #{WASH2}",
+      ETHANOL,
+      WASH2,
+      840,
+      from_svg: :ethanol_container_open,
+      to_svg: :E3_open
+    )
   end
 
   SAMPLE_VOLUME = 350
