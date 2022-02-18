@@ -95,11 +95,11 @@ class Protocol
     change_collection_tubes
 
     add_wash_1
-    centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}")
+    centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}", speed: 8000)
     change_collection_tubes
 
     add_wash_2
-    centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}")
+    centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}", speed: 14000)
 
     transfer_column_to_e6
     elute
@@ -517,7 +517,7 @@ class Protocol
       title 'Change Collection Tubes'
       note display_svg(img, 0.8)
       sample_columns.each do |column|
-        check "Transfer <b>#{column}</b> to a new collection tube."
+        check "Transfer <b>#{column}</b> to new collection tubes."
       end
       note 'Discard previous collection tubes.'
     end
@@ -525,12 +525,12 @@ class Protocol
 
   def add_wash_1
     columns = operations.map { |op| column = "#{SAMPLE_COLUMN}-#{op.temporary[:output_sample]}" }
-    transfer_carefully(WASH1, columns, 500, from_type: 'buffer', to_type: 'column', from_svg: :E2_open, to_svg: :E5_full_open_w_empty_collector)
+    transfer_carefully(WASH1, columns, 500, from_type: 'Wash Buffer', to_type: 'column', from_svg: :E2_open, to_svg: :E5_full_open_w_empty_collector)
   end
 
   def add_wash_2
     columns = operations.map { |op| column = "#{SAMPLE_COLUMN}-#{op.temporary[:output_sample]}" }
-    transfer_carefully(WASH2, columns, COLUMN_VOLUME, from_type: 'buffer', to_type: 'column', from_svg: :E3_open, to_svg: :E5_full_open_w_empty_collector)
+    transfer_carefully(WASH2, columns, 500, from_type: 'Wash Buffer', to_type: 'column', from_svg: :E3_open, to_svg: :E5_full_open_w_empty_collector)
   end
 
   def transfer_carefully(from, to, volume_ul, from_type:, to_type:, from_svg: nil, to_svg: nil)
@@ -596,6 +596,7 @@ class Protocol
     show do
       title 'Add Elution Buffer'
       warning 'Add buffer to center of columns'
+      # Need to change this so it says to use E6-001 and E6-002
       columns = operations.map { |op| column = "#{SAMPLE_COLUMN}-#{op.temporary[:output_sample]}" }
       note display_elution_addition
       columns.each do |column|

@@ -103,7 +103,7 @@ module OLAConstants
 
   # equipment
   THERMOCYCLER = "thermocycler" # what to call the thermocycler
-  CENTRIFUGE_PRE = "Minifuge"
+  CENTRIFUGE_PRE = "Centrifuge"
   CENTRIFUGE_POST = "Minifuge"
   PCR_RACK_PRE = "PCR rack (in the #{PRE_PCR} area)" # what to call the racks the PCR tubes go in
   PCR_RACK_POST = "PCR rack (in the #{POST_PCR} area)" # what to call the racks the PCR tubes go in
