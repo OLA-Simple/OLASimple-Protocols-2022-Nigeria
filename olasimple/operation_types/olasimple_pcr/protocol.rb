@@ -60,6 +60,7 @@ class Protocol
   }
 
   MATERIALS = [
+    'P200 pipette and filtered tips',
     'P20 pipette and filtered tips',
     'a timer',
     'gloves (wear tight gloves to reduce contamination risk)',
@@ -70,7 +71,7 @@ class Protocol
     'centrifuge'
   ].freeze
 
-  SAMPLE_ALIAS = 'RNA Extract'
+  SAMPLE_ALIAS = 'RT cDNA'
 
   ##########################################
   # ##
@@ -106,7 +107,7 @@ class Protocol
     kit_introduction(operations.running)
     record_technician_id
     safety_warning
-    area_preparation('post-PCR', MATERIALS, POST_PCR)
+    area_preparation('post-PCR', MATERIALS, PRE_PCR)
     simple_clean("OLASimple PCR")
     get_inputs(operations.running)
     validate_pcr_inputs(operations.running)
@@ -174,8 +175,7 @@ class Protocol
 
     show do
       title "Place #{SAMPLE_ALIAS.bold} samples in #{AREA.bold}."
-      note "Retrieve from cold rack and place the following #{SAMPLE_ALIAS.bold} samples into a rack in the #{AREA.bold} area."
-      note 'Samples may also be in the -20 freezer if this protocol has been delayed.'
+      note "In #{AREA.bold} area, retrieve RT tubes from thermocycler and place into a rack."
       tubes = []
       gops.each do |unit, ops|
         ops.each_with_index do |op, i|
