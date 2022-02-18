@@ -89,8 +89,9 @@ class Protocol
 
     4.times do
       operations.each { |op| add_sample_to_column(op) }
-      centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}")
+      centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}", speed: 8000)
     end
+    
     change_collection_tubes
 
     add_wash_1
@@ -386,13 +387,16 @@ class Protocol
     end
   end
 
-  def centrifuge_columns(flow_instructions: nil, extra_warning: nil)
+  def centrifuge_columns(flow_instructions: nil, extra_warning: nil, speed: nil)
     columns = sample_labels.map { |s| "#{SAMPLE_COLUMN}-#{s}" }
 
     show do
       title " Centrifuge Columns for #{CENTRIFUGE_TIME}"
       warning extra_warning if extra_warning
       warning 'Ensure both tube caps are tightly closed'
+      if speed
+        note "Set centrifuge to #{speed} RPM"
+      end
       raw centrifuge_proc('Column', columns, CENTRIFUGE_TIME, '', AREA)
       note display_balance_tubes_svg
       check flow_instructions if flow_instructions
@@ -453,7 +457,7 @@ class Protocol
     )
   end
 
-  SAMPLE_VOLUME = 350
+  SAMPLE_VOLUME = 140 
   # transfer plasma Samples into lysis buffer and incubate
   def lyse_samples
     operations.each do |op|
@@ -480,7 +484,7 @@ class Protocol
     incubate(lysed_samples, '10 minutes')
   end
 
-  ETHANOL_BUFFER_VOLUME = 1400
+  ETHANOL_BUFFER_VOLUME = 560 
   def add_ethanol
     lysis_buffers = operations.map { |op| "#{LYSIS_BUFFER}-#{op.temporary[:output_sample]}" }
     transfer_and_vortex(
@@ -494,7 +498,7 @@ class Protocol
     )
   end
 
-  COLUMN_VOLUME = 800
+  COLUMN_VOLUME = 630 
   def add_sample_to_column(op)
     from = "#{LYSIS_BUFFER}-#{op.temporary[:output_sample]}"
     to = "#{SAMPLE_COLUMN}-#{op.temporary[:output_sample]}"
@@ -521,7 +525,7 @@ class Protocol
 
   def add_wash_1
     columns = operations.map { |op| column = "#{SAMPLE_COLUMN}-#{op.temporary[:output_sample]}" }
-    transfer_carefully(WASH2, columns, COLUMN_VOLUME, from_type: 'buffer', to_type: 'column', from_svg: :E2_open, to_svg: :E5_full_open_w_empty_collector)
+    transfer_carefully(WASH1, columns, 500, from_type: 'buffer', to_type: 'column', from_svg: :E2_open, to_svg: :E5_full_open_w_empty_collector)
   end
 
   def add_wash_2
