@@ -54,14 +54,13 @@ class Protocol
   LIGATION_VOLUME = PACK_HASH['Ligation Mix Rehydration Volume'] # volume to rehydrate ligation mix
   SAMPLE_VOLUME = PACK_HASH['PCR to Ligation Mix Volume'] # volume of pcr product to ligation mix
   MATERIALS = [
-    'gloves (wear tight gloves to reduce contamination risk)',
-    'P200 pipette and filtered tips',
-    'P2 pipette and filtered tips',
-    'a spray bottle of 10% v/v bleach',
-    'a spray bottle of 70% v/v ethanol',
-    'balancing tube (on rack)',
-    'centrifuge',
-    'vortex mixer'
+    'Gloves (wear tight gloves to reduce contamination risk)',
+    'P20 pipette and filtered tips',
+    'A spray bottle of 10% v/v bleach',
+    'A spray bottle of 70% v/v ethanol',
+    'Balancing tube (on rack)',
+    'Centrifuge',
+    'Vortex mixer'
   ].freeze
   COMPONENTS = PACK_HASH['Components']['sample tubes']
 
@@ -213,6 +212,7 @@ class Protocol
         grid.align!('center-left')
         img = SVGElement.new(children: [tube, grid], boundx: 1000, boundy: 300).translate!(30, -50)
         note 'Check that the following tubes are in the pack:'
+        note 'Colored tubes in the photo will not match the color of the tubes in the package. Refer to the sticker and barcode attached to each tube to confirm which sample it is.'
         # check "a 1.5mL tube of #{DILUENT_A} labeled #{ops.first.ref("diluent A")}"
         # ops.each do |op|
         #   check "a strip of colored tubes labeled #{op.temporary[:label_string].bold}"
@@ -231,7 +231,7 @@ class Protocol
     labels = ops.map { |op| op.temporary[:label_string] }
     diluentALabels = ops.map { |op| op.ref('diluent A') }.uniq
     show do
-      title 'Centrifuge Diluent A and Ligation tubes for 5 seconds to pull down reagents'
+      title 'Centrifuge Diluent L0 and Ligation tubes for 5 seconds to pull down reagents'
       note 'Put the tag side of the rack toward the center of the centrifuge'
       check "Centrifuge #{(labels + diluentALabels).to_sentence.bold} for 5 seconds."
     end
@@ -282,13 +282,13 @@ class Protocol
             labels.map! { |l| "<b>#{l}</b>" }
             note "In this step we will be adding #{LIGATION_VOLUME}uL of #{DILUENT_A} #{from} into #{pluralizer('tube', COMPONENTS.length)} "
             "of the colored strip of tubes labeled <b>#{labels[0]} to #{labels[-1]}</b>"
-            note "Set a #{P200_POST} pipette to [2 0 0]."
-            note "Using #{P200_POST} add #{LIGATION_VOLUME}uL from #{DILUENT_A} #{from} into each of the #{COMPONENTS.length} tubes."
+            note "Set a #{P20_POST} pipette to [2 0 0]."
+            note "Using #{P20_POST} add #{LIGATION_VOLUME}uL from #{DILUENT_A} #{from} into each of the #{COMPONENTS.length} tubes."
             warning "Only open one of the ligation tubes at a time and discard. Change your pipette tip after every transfer of #{DILUENT_A}."
 
             ligation_tubes = display_ligation_tubes(*op.output_tokens(OUTPUT), COLORS).translate!(0, -20)
 
-            transfer_image = make_transfer(tubeA, ligation_tubes, 300, "#{LIGATION_VOLUME}uL", "(#{P200_POST} pipette)")
+            transfer_image = make_transfer(tubeA, ligation_tubes, 300, "#{LIGATION_VOLUME}uL", "(#{P20_POST} pipette)")
             note display_svg(transfer_image, 0.6)
 
             labels.each do |l|
@@ -444,9 +444,10 @@ class Protocol
     add_to_thermocycler('sample', ops.length * COMPONENTS.length, LIG_CYCLE, ligation_cycle_table, 'Ligation')
 
     show do
-      title 'Set a timer for 35 minutes'
+      title 'Set a timer for 1 Hour'
       #   check "Return to the #{PRE_PCR}."
-      check 'Find a timer and set it for 35 minutes. Continue to next step.'
+      check 'Find a timer and set it for 1 Hour. Continue to next step.'
+      note 'A Time is available in the upper left corner of your screen.'
     end
   end
 
@@ -493,7 +494,7 @@ class Protocol
     end
     show do
       title 'Thank you!'
-      note "The #{THERMOCYCLER} will be done in 50 minutes."
+      note "The #{THERMOCYCLER} will be done in 1 Hour."
     end
   end
 end

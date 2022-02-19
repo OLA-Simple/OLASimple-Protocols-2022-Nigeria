@@ -51,7 +51,7 @@ module OLAConstants
   MUTATIONKEY = :mutations
 
   # kit components
-  DILUENT_A = "Diluent A" # what to call the Diluent A tube (i.e. water)
+  DILUENT_A = "Diluent L0" # what to call the Diluent A tube (i.e. water)
   STOP_MIX = "stop mix" # what to call the input samples (cell lysates)
   GOLD_MIX = "gold mix"
   STRIP = "detection strip"
@@ -104,7 +104,7 @@ module OLAConstants
   # equipment
   THERMOCYCLER = "thermocycler" # what to call the thermocycler
   CENTRIFUGE_PRE = "Centrifuge"
-  CENTRIFUGE_POST = "Minifuge"
+  CENTRIFUGE_POST = "Centrifuge"
   PCR_RACK_PRE = "PCR rack (in the #{PRE_PCR} area)" # what to call the racks the PCR tubes go in
   PCR_RACK_POST = "PCR rack (in the #{POST_PCR} area)" # what to call the racks the PCR tubes go in
   PHOTOCOPIER = "scanner"

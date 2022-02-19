@@ -46,8 +46,8 @@ module OLAKits
                 ],
                 "diluent A" => "0"
             },
-            "PCR to Ligation Mix Volume" => 1.2,
-            "Ligation Mix Rehydration Volume" => 24,
+            "PCR to Ligation Mix Volume" => 4,
+            "Ligation Mix Rehydration Volume" => 20,
             "Number of Samples" => 2,
             "Number of Sub Packages" => 2
         },
