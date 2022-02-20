@@ -1,11 +1,13 @@
+
 # frozen_string_literal: true
 
+##########################################
 #
 #
-# OLASimple PCR
+# OLASimple RT Module 
 # author: Justin Vrana
-# date: March 2018
-# 
+# date: February 2022 
+#
 #
 ##########################################
 
@@ -28,9 +30,11 @@ class Protocol
   # INPUT/OUTPUT
   ##########################################
   INPUT = 'Patient Sample'
-  OUTPUT = 'PCR Product'
-  PACK = 'PCR Pack'
-  A = 'Diluent A'
+  #OUTPUT = 'PCR Product'
+  OUTPUT = 'cDNA'
+  #PACK = 'PCR Pack'
+  PACK = 'RT Pack'
+  #A = 'Diluent A'
 
   ##########################################
   # TERMINOLOGY
@@ -40,8 +44,8 @@ class Protocol
   # Protocol Specifics
   ##########################################
 
-  this_package = prepare_protocol_operations
-  PACK_HASH = PCR_UNIT
+  #PACK_HASH = PCR_UNIT
+  PACK_HASH = RT_UNIT
   AREA = PRE_PCR
   SAMPLE_VOLUME = 10 # volume of sample to add to PCR mix
   PCR_MIX_VOLUME = PACK_HASH['PCR Rehydration Volume'] # volume of water to rehydrate PCR mix in
@@ -60,15 +64,15 @@ class Protocol
   }
 
   MATERIALS = [
-    'P20 pipette and filter tips',
+    'P20 pipette and filtered tips',
     'Gloves (wear tight gloves to reduce contamination risk)',
     'Centrifuge',
-    '70% v/v Ethanol Spray for cleaning',
-    '10% v/v Bleach Spray for cleaning',
-    'Molecular Grade Ethanol'
+    '70% v/v Ethanol spray for cleaning',
+    '10% v/v Bleach spray for cleaning',
+    'Molecular grade ethanol'
   ].freeze
 
-  SAMPLE_ALIAS = 'RNA Extract'
+  SAMPLE_ALIAS = 'RT cDNA'
 
   ##########################################
   # ##
@@ -104,19 +108,16 @@ class Protocol
     kit_introduction(operations.running)
     record_technician_id
     safety_warning
-    area_preparation('pre-PCR', MATERIALS, PRE_PCR)
-    simple_clean("OLASimple RT Module")
-    retrieve_package(this_package)
     
-    get_inputs(operations.running)
-    validate_pcr_inputs(operations.running)
+    area_preparation('pre-PCR', MATERIALS, POST_PCR)
+    simple_clean("OLASimple RT Module")
+
+    #get_inputs(operations.running)
+    #validate_pcr_inputs(operations.running)
     get_pcr_packages(operations.running)
     validate_pcr_packages(operations.running)
     open_pcr_packages(operations.running)
-    # debug_table(operations.running)
-    # check_for_tube_defects sorted_ops.running
-    # nuttada thaw
-    # nuttada needs vortex + centrigure
+    
     centrifuge_samples(sorted_ops.running)
     resuspend_pcr_mix(sorted_ops.running)
     add_template_to_master_mix(sorted_ops.running)
@@ -158,48 +159,21 @@ class Protocol
     operations.sort_by { |op| op.output_ref(OUTPUT) }.extend(OperationList)
   end
 
-  def prepare_protocol_operations
-    if operations.length > BATCH_SIZE
-      raise "Batch size > #{BATCH_SIZE} is not supported for this protocol. Please rebatch."
-    end
-
-    operations.make.retrieve interactive: false
-
-    if debug
-      labels = %w[001 002]
-      operations.each.with_index do |op, i|
-        op.input(INPUT).item.associate(SAMPLE_KEY, labels[i])
-        op.input(INPUT).item.associate(COMPONENT_KEY, PREV_COMPONENT)
-        op.input(INPUT).item.associate(UNIT_KEY, PREV_UNIT)
-        op.input(INPUT).item.associate(KIT_KEY, 'K001')
-        op.input(INPUT).item.associate(PATIENT_KEY, 'a patient id')
-      end
-    end
-    save_temporary_input_values(operations, INPUT)
-    operations.each do |op|
-      op.temporary[:pack_hash] = PACK_HASH
-    end
-    save_temporary_output_values(operations)
-
-    operations.each do |op|
-      op.make_item_and_alias(OUTPUT, 'rna extract tube', INPUT)
-    end
-
-    kits = operations.running.group_by { |op| op.temporary[:input_kit] }
-    this_package = kits.keys.first + THIS_UNIT
-    raise 'More than one kit is not supported by this protocol. Please rebatch.' if kits.length > 1
-
-    this_package
-  end
-
   #######################################
   # Instructions
   #######################################
 
   def kit_introduction(ops)
     show do
-      title "Welcome to OLASimple RT Module (Reverse Transcription)"
-      note 'In this protocol you will be converting the RNA generated in the E module into cDNA.'
+      title "Welcome to OLASimple RT (Reverse Transcription)"
+      note 'In this protocol you will be converting the RNA generated from the E module into cDNA'
+    end
+
+    show do
+      title 'RNase degrades RNA'
+      note 'RNA is prone to degradation by RNase present in our eyes, skin, and breath.'
+      note 'Avoid opening tubes outside the Biosafety Cabinet (BSC).'
+      bullet 'Change gloves whenever you suspect potential RNAse contamination'
     end
   end
 
@@ -208,8 +182,7 @@ class Protocol
 
     show do
       title "Place #{SAMPLE_ALIAS.bold} samples in #{AREA.bold}."
-      note "Retrieve from cold rack and place the following #{SAMPLE_ALIAS.bold} samples into a rack in the #{AREA.bold} area."
-      note 'Samples may also be in the -20 freezer if this protocol has been delayed.'
+      note "In #{AREA.bold} area, retrieve RT tubes from thermocycler and place into a rack."
       tubes = []
       gops.each do |unit, ops|
         ops.each_with_index do |op, i|
@@ -230,7 +203,7 @@ class Protocol
     # TODO: remove all references to 4C fridge and replace with refridgerator
     gops = group_packages(myops)
     show do
-      title "Take #{PCR_PKG_NAME.pluralize(gops.length)} from the #{FRIDGE_PRE} with a Paper Towel and place on the #{BENCH_POST}"
+      title "Take #{PCR_PKG_NAME.pluralize(gops.length)} from the #{FRIDGE_PRE} with a Paper Towel and place in the BSC"
       # check "Take the following from the #{FRIDGE} and place #{pluralizer(PACKAGE, gops.length)} on the #{BENCH}"
       gops.each do |unit, _ops|
         check 'Take package ' "#{unit.bold}" ' from fridge.'
@@ -445,4 +418,3 @@ class Protocol
     end
   end
 end # Class
-
