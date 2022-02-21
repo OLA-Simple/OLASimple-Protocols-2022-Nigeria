@@ -106,6 +106,7 @@ class Protocol
 
     cleanup(sorted_ops)
     start_ligation(sorted_ops.running)
+    store(sorted_ops.running)
     wash_self
     accept_comments
     conclusion(sorted_ops)
@@ -276,14 +277,15 @@ class Protocol
         if expert_mode
           # All transfers at once...
           from = op.ref('diluent A')
-          tubeA = make_tube(opentube, [DILUENT_A, from], op.tube_label('diluent A'), 'medium')
+          #tubeA = make_tube(opentube, [DILUENT_A, from], op.tube_label('diluent A'), 'medium')
+          tubeA = make_tube(opentube, [DILUENT_A], op.tube_label('diluent A'), 'medium')
           show do
-            title "Add #{DILUENT_A} #{from} to #{LIGATION_SAMPLE}s #{op.temporary[:label_string].bold}"
+            title "Add #{DILUENT_A} to #{LIGATION_SAMPLE}s #{op.temporary[:label_string].bold}"
             labels.map! { |l| "<b>#{l}</b>" }
-            note "In this step we will be adding #{LIGATION_VOLUME}uL of #{DILUENT_A} #{from} into #{pluralizer('tube', COMPONENTS.length)} "
+            note "In this step we will be adding #{LIGATION_VOLUME}uL of #{DILUENT_A} into #{pluralizer('tube', COMPONENTS.length)} "
             "of the colored strip of tubes labeled <b>#{labels[0]} to #{labels[-1]}</b>"
             note "Set a #{P20_POST} pipette to [2 0 0]."
-            note "Using #{P20_POST} add #{LIGATION_VOLUME}uL from #{DILUENT_A} #{from} into each of the #{COMPONENTS.length} tubes."
+            note "Using #{P20_POST} add #{LIGATION_VOLUME}uL from #{DILUENT_A} into each of the #{COMPONENTS.length} tubes."
             warning "Only open one of the ligation tubes at a time and discard. Change your pipette tip after every transfer of #{DILUENT_A}."
 
             ligation_tubes = display_ligation_tubes(*op.output_tokens(OUTPUT), COLORS).translate!(0, -20)
@@ -292,7 +294,7 @@ class Protocol
             note display_svg(transfer_image, 0.6)
 
             labels.each do |l|
-              check "Transfer #{LIGATION_VOLUME}uL from #{from.bold} into #{l}"
+              check "Transfer #{LIGATION_VOLUME}uL from #{from.bold} into #{l}. Discard tip, close cap."
             end
 
             # t = Table.new
@@ -382,7 +384,7 @@ class Protocol
             note "Add #{SAMPLE_VOLUME}uL from #{from.bold} into each of #{op.temporary[:label_string].bold}. Only open one ligation tube at a time."
             note "Discard pipette tip between each tube."
 
-            transfer_image = make_transfer(tubeP, ligation_tubes, 300, "#{SAMPLE_VOLUME}uL", "(Post-PCR P2 pipette)")
+            transfer_image = make_transfer(tubeP, ligation_tubes, 300, "#{SAMPLE_VOLUME}uL", "(Post-PCR P20 pipette)")
             note display_svg(transfer_image, 0.6)
             labels.each do |l|
               check "Transfer #{SAMPLE_VOLUME}uL from #{from.bold} into #{l}"
@@ -447,7 +449,7 @@ class Protocol
       title 'Set a timer for 1 Hour'
       #   check "Return to the #{PRE_PCR}."
       check 'Find a timer and set it for 1 Hour. Continue to next step.'
-      note 'A Time is available in the upper left corner of your screen.'
+      note 'A Timer is available in the upper left corner of your screen.'
     end
   end
 
@@ -467,6 +469,19 @@ class Protocol
     t
   end
 
+  def store(myops)
+
+    gops = myops.group_by { |op| op.temporary[:input_kit_and_unit] }
+    gops.each do |_unit, ops|
+      ops.each do |op|
+        from = op.input_ref(INPUT)
+        show do
+            note "Store #{from} in -20C freezer as back up in the event of a sample mix-up"
+        end 
+      end
+    end
+  end
+  
   def cleanup(myops)
     items = [INPUT].map { |x| myops.map { |op| op.input(x) } }.flatten.uniq
     item_refs = [INPUT].map { |x| myops.map { |op| op.input_ref(x) } }.flatten.uniq
@@ -478,8 +493,8 @@ class Protocol
     show do
       title "Discard items into the #{WASTE_POST}"
 
-      note "Discard the following items into the #{WASTE_POST} in the #{AREA}"
-      all_refs.each { |r| bullet r }
+      note "Discard #{DILUENT_A} into the #{WASTE_POST} in the #{AREA}"
+#      all_refs.each { |r| bullet r }
     end
     # clean_area AREA
   end
