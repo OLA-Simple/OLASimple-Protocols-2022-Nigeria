@@ -75,7 +75,7 @@ module OLAConstants
   PCR_PKG_NAME = "PCR package"
   LIG_PKG_NAME = "ligation package"
   DET_PKG_NAME = "detection package"
-
+  RT_PKG_NAME = "rt module package"
   # names of sample field value and validate kit field types
   SAMPLE_PREP_FIELD_VALUE = "Sample Prep Pack"
   PCR_FIELD_VALUE = "PCR Pack"
