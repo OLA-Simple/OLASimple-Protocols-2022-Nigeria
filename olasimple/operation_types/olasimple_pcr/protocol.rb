@@ -42,15 +42,15 @@ class Protocol
   ##########################################
 
   PACK_HASH = PCR_UNIT
-  AREA = PRE_PCR
+  AREA = POST_PCR
   SAMPLE_VOLUME = 10 # volume of sample to add to PCR mix
   PCR_MIX_VOLUME = PACK_HASH['PCR Rehydration Volume'] # volume of water to rehydrate PCR mix in
   CENTRIFUGE_TIME = '5 seconds' # time to pulse centrifuge to pull down dried powder
   VORTEX_TIME = '5 seconds' # time to pulse vortex to mix
 
   # for debugging
-  PREV_COMPONENT = '6'
-  PREV_UNIT = 'E'
+#  PREV_COMPONENT = '6'
+  PREV_UNIT = 'RT'
 
   TUBE_CAP_WARNING = 'Check to make sure tube caps are completely closed.'
 
@@ -62,13 +62,13 @@ class Protocol
   MATERIALS = [
     'P200 pipette and filtered tips',
     'P20 pipette and filtered tips',
-    'a timer',
-    'gloves (wear tight gloves to reduce contamination risk)',
-    'post-PCR rack',
-    'a balancing tube (on rack)',
-    'waste bag',
-    'vortex',
-    'centrifuge'
+    'A timer',
+    'Gloves (wear tight gloves to reduce contamination risk)',
+    'Post-PCR rack',
+    'A balancing tube (on rack)',
+    'Waste bag',
+    'Vortex',
+    'Centrifuge'
   ].freeze
 
   SAMPLE_ALIAS = 'RT cDNA'
@@ -90,7 +90,7 @@ class Protocol
       kit_num = 'K001'
       operations.each.with_index do |op, i|
         op.input(INPUT).item.associate(SAMPLE_KEY, labels[i])
-        op.input(INPUT).item.associate(COMPONENT_KEY, PREV_COMPONENT)
+#        op.input(INPUT).item.associate(COMPONENT_KEY, PREV_COMPONENT)
         op.input(INPUT).item.associate(KIT_KEY, kit_num)
         op.input(INPUT).item.associate(UNIT_KEY, PREV_UNIT)
         op.input(INPUT).item.associate(PATIENT_KEY, "A PATIENT ID")        
@@ -107,8 +107,9 @@ class Protocol
     kit_introduction(operations.running)
     record_technician_id
     safety_warning
-    area_preparation('post-PCR', MATERIALS, PRE_PCR)
+    area_preparation('post-PCR', MATERIALS, POST_PCR)
     simple_clean("OLASimple PCR")
+
     get_inputs(operations.running)
     validate_pcr_inputs(operations.running)
     get_pcr_packages(operations.running)
@@ -187,6 +188,7 @@ class Protocol
     end
   end
 
+  #make_tube(tube, bottom_label, middle_label, fluid = nil, cropped_for_closed_tube = false, fluidclass: nil)
   def validate_pcr_inputs(myops)
     expected_inputs = myops.map { |op| ref(op.input(INPUT).item) }
     sample_validation_with_multiple_tries(expected_inputs)
@@ -407,6 +409,7 @@ class Protocol
   def conclusion(_myops)
     show do
       title 'Thank you!'
+      note 'Click OK to finish this protocol'
       note 'You may start the next protocol in 2 hours.'
     end
   end
