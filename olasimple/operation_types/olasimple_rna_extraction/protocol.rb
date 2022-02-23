@@ -80,7 +80,7 @@ class Protocol
 
     fill_ethanol
 
-    prepare_buffers # this has a large section commented out
+    prepare_buffers
     
     lyse_samples 
     remove_outer_layer
