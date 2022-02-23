@@ -29,7 +29,7 @@ class Protocol
   INPUT = 'PCR Product'
   OUTPUT = 'Ligation Product'
   PACK = 'Ligation Pack'
-  A = 'Diluent A'
+  A = 'Diluent A' #Update to be LO??
 
   ##########################################
   # TERMINOLOGY
@@ -54,14 +54,13 @@ class Protocol
   LIGATION_VOLUME = PACK_HASH['Ligation Mix Rehydration Volume'] # volume to rehydrate ligation mix
   SAMPLE_VOLUME = PACK_HASH['PCR to Ligation Mix Volume'] # volume of pcr product to ligation mix
   MATERIALS = [
-    'gloves (wear tight gloves to reduce contamination risk)',
-    'P200 pipette and filtered tips',
-    'P2 pipette and filtered tips',
-    'a spray bottle of 10% v/v bleach',
-    'a spray bottle of 70% v/v ethanol',
-    'balancing tube (on rack)',
-    'centrifuge',
-    'vortex mixer'
+    'Gloves (wear tight gloves to reduce contamination risk)',
+    'P20 pipette and filtered tips',
+    'A spray bottle of 10% v/v bleach',
+    'A spray bottle of 70% v/v ethanol',
+    'Balancing tube (on rack)',
+    'Centrifuge',
+    'Vortex mixer'
   ].freeze
   COMPONENTS = PACK_HASH['Components']['sample tubes']
 
@@ -104,8 +103,10 @@ class Protocol
     vortex_and_centrifuge_samples(sorted_ops.running)
     add_template(sorted_ops.running, expert_mode)
     vortex_and_centrifuge_samples(sorted_ops.running)
+
     cleanup(sorted_ops)
     start_ligation(sorted_ops.running)
+    store(sorted_ops.running)
     wash_self
     accept_comments
     conclusion(sorted_ops)
@@ -173,6 +174,7 @@ class Protocol
         check "Retrieve #{PACKAGE_POST} #{unit.bold}"
       end
       check "Place #{pluralizer(PACKAGE_POST, gops.length)} on the #{BENCH_POST}."
+      note "If you touched the refrigerator handle to remove the samples, put on a new outside layer of gloves."
     end
   end
 
@@ -211,6 +213,7 @@ class Protocol
         grid.align!('center-left')
         img = SVGElement.new(children: [tube, grid], boundx: 1000, boundy: 300).translate!(30, -50)
         note 'Check that the following tubes are in the pack:'
+        note 'Colored tubes in the photo will not match the color of the tubes in the package. Refer to the sticker and barcode attached to each tube to confirm which sample it is.'
         # check "a 1.5mL tube of #{DILUENT_A} labeled #{ops.first.ref("diluent A")}"
         # ops.each do |op|
         #   check "a strip of colored tubes labeled #{op.temporary[:label_string].bold}"
@@ -229,7 +232,7 @@ class Protocol
     labels = ops.map { |op| op.temporary[:label_string] }
     diluentALabels = ops.map { |op| op.ref('diluent A') }.uniq
     show do
-      title 'Centrifuge Diluent A and Ligation tubes for 5 seconds to pull down reagents'
+      title 'Centrifuge Diluent L0 and Ligation tubes for 5 seconds to pull down reagents'
       note 'Put the tag side of the rack toward the center of the centrifuge'
       check "Centrifuge #{(labels + diluentALabels).to_sentence.bold} for 5 seconds."
     end
@@ -274,23 +277,24 @@ class Protocol
         if expert_mode
           # All transfers at once...
           from = op.ref('diluent A')
-          tubeA = make_tube(opentube, [DILUENT_A, from], op.tube_label('diluent A'), 'medium')
+          #tubeA = make_tube(opentube, [DILUENT_A, from], op.tube_label('diluent A'), 'medium')
+          tubeA = make_tube(opentube, [DILUENT_A], op.tube_label('diluent A'), 'medium')
           show do
-            title "Add #{DILUENT_A} #{from} to #{LIGATION_SAMPLE}s #{op.temporary[:label_string].bold}"
+            title "Add #{DILUENT_A} to #{LIGATION_SAMPLE}s #{op.temporary[:label_string].bold}"
             labels.map! { |l| "<b>#{l}</b>" }
-            note "In this step we will be adding #{LIGATION_VOLUME}uL of #{DILUENT_A} #{from} into #{pluralizer('tube', COMPONENTS.length)} "
+            note "In this step we will be adding #{LIGATION_VOLUME}uL of #{DILUENT_A} into #{pluralizer('tube', COMPONENTS.length)} "
             "of the colored strip of tubes labeled <b>#{labels[0]} to #{labels[-1]}</b>"
-            note "Set a #{P200_POST} pipette to [0 2 4]."
-            note "Using #{P200_POST} add #{LIGATION_VOLUME}uL from #{DILUENT_A} #{from} into each of the #{COMPONENTS.length} tubes."
-            warning 'Only open one of the ligation tubes at a time.'
+            note "Set a #{P20_POST} pipette to [2 0 0]."
+            note "Using #{P20_POST} add #{LIGATION_VOLUME}uL from #{DILUENT_A} into each of the #{COMPONENTS.length} tubes."
+            warning "Only open one of the ligation tubes at a time and discard. Change your pipette tip after every transfer of #{DILUENT_A}."
 
             ligation_tubes = display_ligation_tubes(*op.output_tokens(OUTPUT), COLORS).translate!(0, -20)
 
-            transfer_image = make_transfer(tubeA, ligation_tubes, 300, "#{LIGATION_VOLUME}uL", "(#{P200_POST} pipette)")
+            transfer_image = make_transfer(tubeA, ligation_tubes, 300, "#{LIGATION_VOLUME}uL", "(#{P20_POST} pipette)")
             note display_svg(transfer_image, 0.6)
 
             labels.each do |l|
-              check "Transfer #{LIGATION_VOLUME}uL from #{from.bold} into #{l}"
+              check "Transfer #{LIGATION_VOLUME}uL from #{from.bold} into #{l}. Discard tip, close cap."
             end
 
             # t = Table.new
@@ -376,10 +380,11 @@ class Protocol
           show do
             raw transfer_title_proc(SAMPLE_VOLUME, from, op.temporary[:label_string])
             warning 'Change pipette tip between tubes'
-            check "Using a P2 pipette set to [1 2 0]."
+            check "Using a P20 pipette set to [0 4 0]."
             note "Add #{SAMPLE_VOLUME}uL from #{from.bold} into each of #{op.temporary[:label_string].bold}. Only open one ligation tube at a time."
+            note "Discard pipette tip between each tube."
 
-            transfer_image = make_transfer(tubeP, ligation_tubes, 300, "#{SAMPLE_VOLUME}uL", "(Post-PCR P2 pipette)")
+            transfer_image = make_transfer(tubeP, ligation_tubes, 300, "#{SAMPLE_VOLUME}uL", "(Post-PCR P20 pipette)")
             note display_svg(transfer_image, 0.6)
             labels.each do |l|
               check "Transfer #{SAMPLE_VOLUME}uL from #{from.bold} into #{l}"
@@ -441,16 +446,17 @@ class Protocol
     add_to_thermocycler('sample', ops.length * COMPONENTS.length, LIG_CYCLE, ligation_cycle_table, 'Ligation')
 
     show do
-      title 'Set a timer for 45 minutes'
+      title 'Set a timer for 1 Hour'
       #   check "Return to the #{PRE_PCR}."
-      check 'Find a timer and set it for 45 minutes. Continue to next step.'
+      check 'Find a timer and set it for 1 Hour. Continue to next step.'
+      note 'A Timer is available in the upper left corner of your screen.'
     end
   end
 
   def ligation_cycle_table
     t = Table.new
     cycles_temp = "<table style=\"width:100%\">
-                        <tr><td>95C</td></tr>
+                        <tr><td>94</td></tr>
                         <tr><td>37C</td></tr>
           </table>"
     cycles_time = "<table style=\"width:100%\">
@@ -463,6 +469,19 @@ class Protocol
     t
   end
 
+  def store(myops)
+
+    gops = myops.group_by { |op| op.temporary[:input_kit_and_unit] }
+    gops.each do |_unit, ops|
+      ops.each do |op|
+        from = op.input_ref(INPUT)
+        show do
+            note "Store #{from} in -20C freezer as back up in the event of a sample mix-up"
+        end 
+      end
+    end
+  end
+  
   def cleanup(myops)
     items = [INPUT].map { |x| myops.map { |op| op.input(x) } }.flatten.uniq
     item_refs = [INPUT].map { |x| myops.map { |op| op.input_ref(x) } }.flatten.uniq
@@ -474,8 +493,8 @@ class Protocol
     show do
       title "Discard items into the #{WASTE_POST}"
 
-      note "Discard the following items into the #{WASTE_POST} in the #{AREA}"
-      all_refs.each { |r| bullet r }
+      note "Discard #{DILUENT_A} into the #{WASTE_POST} in the #{AREA}"
+#      all_refs.each { |r| bullet r }
     end
     # clean_area AREA
   end
@@ -490,7 +509,7 @@ class Protocol
     end
     show do
       title 'Thank you!'
-      note "The #{THERMOCYCLER} will be done in 50 minutes."
+      note "The #{THERMOCYCLER} will be done in 1 Hour."
     end
   end
 end

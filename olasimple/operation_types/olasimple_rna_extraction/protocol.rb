@@ -79,24 +79,27 @@ class Protocol
     open_package(this_package)
 
     fill_ethanol
+
     prepare_buffers
-    lyse_samples
+    
+    lyse_samples 
     remove_outer_layer
     incubate_lysed_samples(operations)
     add_ethanol
 
     4.times do
       operations.each { |op| add_sample_to_column(op) }
-      centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}")
+      centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}", speed: 8000)
     end
+    
     change_collection_tubes
 
     add_wash_1
-    centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}")
+    centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}", speed: 8000)
     change_collection_tubes
 
     add_wash_2
-    centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}")
+    centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}", speed: 14000)
 
     transfer_column_to_e6
     elute
@@ -165,8 +168,7 @@ class Protocol
   def introduction
     show do
       title 'Welcome to OLASimple RNA Extraction'
-      note 'In this protocol you will lyse and purify RNA from HIV-infected plasma.'
-      # image of tubes
+      note 'In this protocol you will lyse viral particles and purify RNA from HIV-infected plasma.'
     end
 
     show do
@@ -174,14 +176,13 @@ class Protocol
       note 'RNA is prone to degradation by RNase present in our eyes, skin, and breath.'
       note 'Avoid opening tubes outside the Biosafety Cabinet (BSC).'
       bullet 'Change gloves whenever you suspect potential RNAse contamination'
-      # show image of gloves
     end
 
     show do
       title 'Required Reagent (not provided)'
-      check 'Before starting this protocol, make sure you have access to molecular grade ethanol (~10 mL).'
+      check 'Before starting this protocol, make sure you have access to molecular grade ethanol (~10 mL, 200 proof).'
       note 'Do not use other grades of ethanol as this will negatively affect the RNA extraction yield.'
-      note 'Soon, using a serological pipette, we will transfer 4ml of the molecular grade ethanol to the provided ethanol container in the kit.'
+      note 'Soon, using a serological pipette, you will transfer 4ml of the molecular grade ethanol to the provided ethanol container in the kit.'
       note display_ethanol_question_svg
     end
   end
@@ -206,7 +207,7 @@ class Protocol
         'gloves',
         'Pipette controller and 10mL serological pipette',
         'Vortex mixer',
-        'Minifuge',
+        'Centrifuge',
         'Cold tube rack',
         '70% v/v Ethanol spray for cleaning',
         '10% v/v Bleach spray for cleaning',
@@ -221,7 +222,7 @@ class Protocol
   def retrieve_package(this_package)
     show do
       title "Retrieve package"
-      check "Grab package #{this_package.bold} from the #{FRIDGE_PRE} and place in the #{BSC}"
+      check "Take package #{this_package.bold} from the #{FRIDGE_PRE} and place in the #{BSC}"
     end
   end
 
@@ -300,8 +301,10 @@ class Protocol
 
   # helper method for simple transfers in this protocol
   def transfer_and_vortex(title, from, to, volume_ul, warning: nil, to_svg: nil, from_svg: nil, skip_centrifuge: false, extra_check: nil)
-    pipette, extra_note, setting_instruction = pipette_decision(volume_ul)
 
+    pipette, extra_note, setting_instruction = pipette_decision(volume_ul)
+   # pipette, extra_note, setting_instruction = "P20", nil, "Set P20 pipette to [0 5 6]"  
+    
     if to.is_a?(Array) # MULTI TRANSFER
       img = nil
       if from_svg && to_svg
@@ -384,13 +387,16 @@ class Protocol
     end
   end
 
-  def centrifuge_columns(flow_instructions: nil, extra_warning: nil)
+  def centrifuge_columns(flow_instructions: nil, extra_warning: nil, speed: nil)
     columns = sample_labels.map { |s| "#{SAMPLE_COLUMN}-#{s}" }
 
     show do
       title " Centrifuge Columns for #{CENTRIFUGE_TIME}"
       warning extra_warning if extra_warning
       warning 'Ensure both tube caps are tightly closed'
+      if speed
+        note "Set centrifuge to #{speed} RPM"
+      end
       raw centrifuge_proc('Column', columns, CENTRIFUGE_TIME, '', AREA)
       note display_balance_tubes_svg
       check flow_instructions if flow_instructions
@@ -404,40 +410,54 @@ class Protocol
     end
 
     # add sa water to dtt/trna
-    transfer_and_vortex(
-      "Prepare #{DTT}",
-      SA_WATER,
-      DTT,
-      25,
-      from_svg: :E4_open,
-      to_svg: :E0_open_dry
-    )
+#    transfer_and_vortex(
+#      "Prepare #{DTT}",
+#      SA_WATER,
+#      DTT,
+#      25,
+#      from_svg: :E4_open,
+#      to_svg: :E0_open_dry
+#    )
 
     # add dtt solution to lysis buffer
 
     lysis_buffers = operations.map { |op| "#{LYSIS_BUFFER}-#{op.temporary[:output_sample]}" }
+ 
+    #   show do
+ #     note 'Carrier RNA REHYDRATION STEP IS TO BE DONE BY TEAM PRIOR TO HAVING TECHS START'
+ #   end 
+
     transfer_and_vortex(
       "Prepare Lysis Buffers #{lysis_buffers.to_sentence}",
-      DTT,
+      DTT, #E0
       lysis_buffers,
-      10,
+      5.6,
       from_svg: :E0_open_wet,
       to_svg: :E1_open,
       skip_centrifuge: true
     )
 
-    # prepare wash buffer 2 with ethanaol
+#   prepare wash buffer 2 with ethanaol
+    transfer_and_vortex(
+      "Prepare Buffers #{WASH1} and #{WASH2}",
+      ETHANOL,
+      WASH1,
+      680,
+      from_svg: :ethanol_container_open,
+      to_svg: :E3_open
+    )
+    
     transfer_and_vortex(
       "Prepare #{WASH2}",
       ETHANOL,
       WASH2,
-      1600,
+      840,
       from_svg: :ethanol_container_open,
       to_svg: :E3_open
     )
   end
 
-  SAMPLE_VOLUME = 350
+  SAMPLE_VOLUME = 140 
   # transfer plasma Samples into lysis buffer and incubate
   def lyse_samples
     operations.each do |op|
@@ -461,10 +481,10 @@ class Protocol
 
   def incubate_lysed_samples(ops)
     lysed_samples = ops.map { |op| "#{LYSIS_BUFFER}-#{op.temporary[:output_sample]}" }
-    incubate(lysed_samples, '15 minutes')
+    incubate(lysed_samples, '10 minutes')
   end
 
-  ETHANOL_BUFFER_VOLUME = 1400
+  ETHANOL_BUFFER_VOLUME = 560 
   def add_ethanol
     lysis_buffers = operations.map { |op| "#{LYSIS_BUFFER}-#{op.temporary[:output_sample]}" }
     transfer_and_vortex(
@@ -478,7 +498,7 @@ class Protocol
     )
   end
 
-  COLUMN_VOLUME = 800
+  COLUMN_VOLUME = 630 
   def add_sample_to_column(op)
     from = "#{LYSIS_BUFFER}-#{op.temporary[:output_sample]}"
     to = "#{SAMPLE_COLUMN}-#{op.temporary[:output_sample]}"
@@ -497,7 +517,7 @@ class Protocol
       title 'Change Collection Tubes'
       note display_svg(img, 0.8)
       sample_columns.each do |column|
-        check "Transfer <b>#{column}</b> to a new collection tube."
+        check "Transfer <b>#{column}</b> to new collection tubes."
       end
       note 'Discard previous collection tubes.'
     end
@@ -505,12 +525,12 @@ class Protocol
 
   def add_wash_1
     columns = operations.map { |op| column = "#{SAMPLE_COLUMN}-#{op.temporary[:output_sample]}" }
-    transfer_carefully(WASH2, columns, COLUMN_VOLUME, from_type: 'buffer', to_type: 'column', from_svg: :E2_open, to_svg: :E5_full_open_w_empty_collector)
+    transfer_carefully(WASH1, columns, 500, from_type: 'Wash Buffer', to_type: 'column', from_svg: :E2_open, to_svg: :E5_full_open_w_empty_collector)
   end
 
   def add_wash_2
     columns = operations.map { |op| column = "#{SAMPLE_COLUMN}-#{op.temporary[:output_sample]}" }
-    transfer_carefully(WASH2, columns, COLUMN_VOLUME, from_type: 'buffer', to_type: 'column', from_svg: :E3_open, to_svg: :E5_full_open_w_empty_collector)
+    transfer_carefully(WASH2, columns, 500, from_type: 'Wash Buffer', to_type: 'column', from_svg: :E3_open, to_svg: :E5_full_open_w_empty_collector)
   end
 
   def transfer_carefully(from, to, volume_ul, from_type:, to_type:, from_svg: nil, to_svg: nil)
@@ -576,6 +596,7 @@ class Protocol
     show do
       title 'Add Elution Buffer'
       warning 'Add buffer to center of columns'
+      # Need to change this so it says to use E6-001 and E6-002
       columns = operations.map { |op| column = "#{SAMPLE_COLUMN}-#{op.temporary[:output_sample]}" }
       note display_elution_addition
       columns.each do |column|

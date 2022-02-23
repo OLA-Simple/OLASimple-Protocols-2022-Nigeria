@@ -605,7 +605,7 @@ module OLALib
     show do
       title "Vortex and #{CENTRIFUGE_VERB} #{sample_identifier.pluralize(num)}"
       note mynote unless mynote.nil?
-      warning "Close tube caps."
+      warning "Close all tube caps."
       # note "Using #{sample_identifier.pluralize(num)} #{sample_labels.join(', ').bold}:"
       raw vortex_proc(sample_identifier, sample_labels, vortex_time, vortex_reason)
       raw centrifuge_proc(sample_identifier, sample_labels, spin_time, spin_reason, area)
@@ -633,13 +633,13 @@ module OLALib
   def clean_area(area)
     show do
       disinfectant = '10% bleach'
-      title "Wipe down #{area} with #{disinfectant.bold}."
+      title "Wipe down the #{area} area with #{disinfectant.bold}."
       note "Now you will wipe down your #{area} space and equipment with #{disinfectant.bold}."
       check "Spray #{disinfectant.bold} onto a #{WIPE} and clean off pipettes and pipette tip boxes."
       check "Spray #{disinfectant.bold} onto a #{WIPE} and wipe down the bench surface."
       # check "Spray some #{disinfectant.bold} on a #{WIPE}, gently wipe down keyboard and mouse of this computer/tablet."
       warning "Do not spray 10% bleach directly onto tablet, computer, barcode scanner or centrifuge!"
-      # check "Finally, spray outside of gloves with #{disinfectant.bold}."
+      check "Finally, spray outside of gloves with #{disinfectant.bold}."
     end
 
     show do
@@ -648,7 +648,7 @@ module OLALib
       note "Now you will wipe down your #{area} space and equipment with #{disinfectant.bold}."
       check "Spray #{disinfectant.bold} onto a #{WIPE} and clean off pipettes and pipette tip boxes."
       check "Spray #{disinfectant.bold} onto a #{WIPE} and wipe down the bench surface."
-      note "Bleach residues can inhibit the assay. Make sure to completely wipe all surface with 70% ethanol spray"
+      note "Bleach residues can inhibit the assay. Make sure to completely wipe all surfaces with 70% ethanol spray"
       warning "Do not spray #{disinfectant.bold} onto tablet or computer!"
       # check "Finally, spray outside of gloves with #{disinfectant.bold}."
     end
@@ -658,7 +658,7 @@ module OLALib
     show do
       title 'Ensure Workspace is Clean'
       note "#{protocol} is prone to contamination. False positives can occur when the area is not clean."
-      check "If area is not clean, or you aren't sure, wipe down space with 10% bleach and 70% ethanol."
+      check "If the area is not clean, or you aren't sure, wipe the space down with 10% bleach and 70% ethanol."
       note 'Spray disinfectants onto wipes, not directly onto surfaces.'
       warning 'Only spray bleach and ethanol when all tubes are closed. Bleach can inhibit the reactions.'
     end
@@ -690,6 +690,7 @@ module OLALib
       check 'Put on lab coat.'
       check "Put on #{(area && area == PRE_PCR) ? 'layers of ' : ''}gloves."
       bullet 'Make sure to use tight gloves. Tight gloves reduce the chance of the gloves getting caught on the tubes when closing their lids.'
+      bullet 'Change gloves after touching any common space surface to reduce contamination (such as a refrigerator door handle).'
       if area && area == PRE_PCR
         bullet 'Change outer layer of gloves after handling infectious sample and before touching surfaces outside of the BSC (such as a refrigerator door handle).'
       end

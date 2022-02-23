@@ -171,6 +171,8 @@ class Protocol
         check "Retrieve package #{unit.bold}"
       end
       check "Place #{pluralizer('package', gops.length)} on the bench in the #{AREA.bold} area."
+      note "Remove the outside layer of gloves (since you just touched the door knob)"
+      note "Put on a new outside layer of gloves."
     end
   end
 
@@ -220,8 +222,10 @@ class Protocol
       to = ops.first.ref('stop')
       show do
         raw transfer_title_proc(STOP_VOLUME, from, to)
-        check "Centrifuge tubes #{to} and #{from} for 5 seconds to pull reagents."
-        check "Set a #{P200_POST} pipette to <b>[0 3 6]</b>. Add #{STOP_VOLUME}uL from #{from.bold} into tube #{to.bold}"
+        #check "Centrifuge tubes #{to} and #{from} for 5 seconds to pull reagents."
+        check "Centrifuge tube #{from} for 5 seconds to ensure all liquid is brought down."
+        check "Centrifuge tube #{to} for 5 seconds to pull down powder"
+        check "Set a #{P200_POST} pipette to <b>[0 6 7]</b>. Add #{STOP_VOLUME}uL from #{from.bold} into tube #{to.bold}"
         tubeA = make_tube(opentube, DILUENT_A, ops.first.tube_label('diluent A'), 'medium')
         tubeS = make_tube(opentube, STOP_MIX, ops.first.tube_label('stop'), 'powder')
         img = make_transfer(tubeA, tubeS, 300, "#{STOP_VOLUME}uL", "(#{P200_POST} pipette)")
@@ -323,7 +327,7 @@ class Protocol
             show do
               raw transfer_title_proc(STOP_TO_SAMPLE_VOLUME, from, label)
               # title "Add #{STOP_TO_SAMPLE_VOLUME}uL #{STOP_MIX} #{from.bold} to #{LIGATION_SAMPLE} #{label}"
-              note "Set a #{P20_POST} pipette to [0 2 4]. Add #{STOP_TO_SAMPLE_VOLUME}uL from #{from.bold} into tube #{label.bold}"
+              note "Set a #{P20_POST} pipette to [0 4 0]. Add #{STOP_TO_SAMPLE_VOLUME}uL from #{from.bold} into tube #{label.bold}"
               note "Close tube #{label}."
               note 'Discard pipette tip.'
               tubeS = make_tube(opentube, STOP_MIX, op.tube_label('stop'), 'medium')
@@ -341,7 +345,7 @@ class Protocol
       title "Vortex and centrifuge all #{operations.size * PREV_COMPONENTS.size} tubes for 5 seconds."
       check 'Vortex for 5 seconds.'
       check 'Centrifuge for 5 seconds.'
-      note 'This step is important to avoid FALSE POSITIVE.'
+      warning 'This step is important to avoid FALSE POSITIVES.'
     end
 
     t = Table.new
@@ -402,6 +406,7 @@ class Protocol
         to_name = "#{op.temporary[:output_unit]}-#{op.temporary[:output_sample]}"
         svg_both = display_panel_and_tubes(kit, panel_unit, tube_unit, PREV_COMPONENTS, sample, COLORS).translate!(50).scale!(0.8)
         p = proc do
+          # CONFIRM THIS WITH JORDAN
           title "Arrange #{STRIPS} and tubes for sample #{op.temporary[:input_sample]}" # for sample 1?
           note "Place the #{STRIPS} #{to_name} and #{LIGATION_SAMPLE.pluralize(PREV_COMPONENTS.length)} #{from_name} as shown in the picture:"
           note 'Scan in IDS of objects for confirmation.'
@@ -410,10 +415,11 @@ class Protocol
         pre_transfer_validation_with_multiple_tries(from_name, to_name, svg_both, content_override: content)
 
         show do
-          title "From each colored tube, add #{SAMPLE_TO_STRIP_VOLUME}uL of #{LIGATION_SAMPLE} to the corresponding sample port of each #{STRIP}."
+          title "From each corresponding tube (as seen above), add #{SAMPLE_TO_STRIP_VOLUME}uL of #{LIGATION_SAMPLE} to the corresponding sample port of each #{STRIP}."
           unless timer_set
             warning '<h2>Complicated Step! Take note of all instructions before beginning transfers.</h2>'
-            note 'Set a 5 minute timer after adding ligation sample to <b>FIRST</b> strip at the SAMPLE PORT.'
+            note 'Set a 5 minute timer after adding the ligation sample to the <b>FIRST</b> strip at the SAMPLE PORT.'
+            note '<b>Immediately</b> click OK when finished adding the ligation sample to the <b>LAST</b> strip at the sample port.' 
           end
           note '<hr>'
           timer_set = true
@@ -444,7 +450,7 @@ class Protocol
         raw transfer_title_proc(GOLD_VOLUME, from, to)
         # title "Add #{GOLD_VOLUME}uL of #{DILUENT_A} #{from.bold} to #{GOLD_MIX} #{to.bold}"
         raw centrifuge_proc(GOLD_MIX, [to], CENTRIFUGE_TIME, 'to pull down dried powder.', AREA)
-        note "Set a #{P1000_POST} pipette to <b>[ 0 6 0 ]</b>. Add #{GOLD_VOLUME}uL from #{from.bold} into tube #{to.bold}."
+        note "Set a #{P1000_POST} pipette to <b>[ 0 6 7 ]</b>. Add #{GOLD_VOLUME}uL from #{from.bold} into tube #{to.bold}."
         raw vortex_proc(GOLD_MIX, [to], '10 seconds', 'to mix well.')
         warning "Make sure #{GOLD_MIX} is fully dissolved."
         warning "Do not centrifuge #{to.bold} after vortexing."
@@ -502,7 +508,7 @@ class Protocol
       check "In the meantime, make sure you have access to the #{PHOTOCOPIER}."
       note 'Signal can develop more slowly if the room is humid. After the 10-min timer ends, you should see at least two lines on each strip.'
       note 'If your signal is hard to see by eye, give it another 5 minutes before clicking OK.'
-      note 'Do not continue to next step until signal is visible.'
+      note 'Do not continue to the next step until signal is visible.'
     end
 
     # show do
@@ -533,7 +539,7 @@ class Protocol
 
           show do
             title 'Scan the image'
-            check "Press the <b>\"AUTO SCAN\"</b> button firmly on the side of the #{PHOTOCOPIER} and hold for a few seonds. A new window should pop up, with a green bar indicating scanning in progress."
+            check "Press the <b>\"AUTO SCAN\"</b> button firmly on the side of the #{PHOTOCOPIER} and hold for a few seconds. A new window should pop up, with a green bar indicating scanning in progress."
             check "Wait for #{PHOTOCOPIER} to complete. This takes about 1 minute."
           end
 

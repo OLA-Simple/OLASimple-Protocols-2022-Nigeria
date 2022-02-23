@@ -1,11 +1,12 @@
+
 # frozen_string_literal: true
 
 ##########################################
 #
 #
-# OLASimple PCR
+# OLASimple RT Module 
 # author: Justin Vrana
-# date: March 2018
+# date: February 2022 
 #
 #
 ##########################################
@@ -29,9 +30,11 @@ class Protocol
   # INPUT/OUTPUT
   ##########################################
   INPUT = 'Patient Sample'
-  OUTPUT = 'PCR Product'
-  PACK = 'PCR Pack'
-  A = 'Diluent A'
+  #OUTPUT = 'PCR Product'
+  OUTPUT = 'cDNA'
+  #PACK = 'PCR Pack'
+  PACK = 'RT Pack'
+  #A = 'Diluent A'
 
   ##########################################
   # TERMINOLOGY
@@ -41,7 +44,8 @@ class Protocol
   # Protocol Specifics
   ##########################################
 
-  PACK_HASH = PCR_UNIT
+  #PACK_HASH = PCR_UNIT
+  PACK_HASH = RT_UNIT
   AREA = PRE_PCR
   SAMPLE_VOLUME = 10 # volume of sample to add to PCR mix
   PCR_MIX_VOLUME = PACK_HASH['PCR Rehydration Volume'] # volume of water to rehydrate PCR mix in
@@ -60,15 +64,12 @@ class Protocol
   }
 
   MATERIALS = [
-    'P200 pipette and filtered tips',
     'P20 pipette and filtered tips',
-    'a timer',
-    'gloves (wear tight gloves to reduce contamination risk)',
-    'post-PCR rack',
-    'a balancing tube (on rack)',
-    'waste bag',
-    'vortex',
-    'centrifuge'
+    'Gloves (wear tight gloves to reduce contamination risk)',
+    'Centrifuge',
+    '70% v/v Ethanol spray for cleaning',
+    '10% v/v Bleach spray for cleaning',
+    'Molecular grade ethanol'
   ].freeze
 
   SAMPLE_ALIAS = 'RT cDNA'
@@ -107,17 +108,16 @@ class Protocol
     kit_introduction(operations.running)
     record_technician_id
     safety_warning
-    area_preparation('post-PCR', MATERIALS, PRE_PCR)
-    simple_clean("OLASimple PCR")
-    get_inputs(operations.running)
-    validate_pcr_inputs(operations.running)
+    
+    area_preparation('pre-PCR', MATERIALS, POST_PCR)
+    simple_clean("OLASimple RT Module")
+
+    #get_inputs(operations.running)
+    #validate_pcr_inputs(operations.running)
     get_pcr_packages(operations.running)
     validate_pcr_packages(operations.running)
     open_pcr_packages(operations.running)
-    # debug_table(operations.running)
-    # check_for_tube_defects sorted_ops.running
-    # nuttada thaw
-    # nuttada needs vortex + centrigure
+    
     centrifuge_samples(sorted_ops.running)
     resuspend_pcr_mix(sorted_ops.running)
     add_template_to_master_mix(sorted_ops.running)
@@ -165,8 +165,15 @@ class Protocol
 
   def kit_introduction(ops)
     show do
-      title "Welcome to OLASimple PCR"
-      note 'You will be running the OLASimple PCR protocol. You will start with cDNA generated from the RNA samples extracted during the RT Module and will generate PCR products to use later to detect HIV mutations.'
+      title "Welcome to OLASimple RT (Reverse Transcription)"
+      note 'In this protocol you will be converting the RNA generated from the E module into cDNA'
+    end
+
+    show do
+      title 'RNase degrades RNA'
+      note 'RNA is prone to degradation by RNase present in our eyes, skin, and breath.'
+      note 'Avoid opening tubes outside the Biosafety Cabinet (BSC).'
+      bullet 'Change gloves whenever you suspect potential RNAse contamination'
     end
   end
 
@@ -196,7 +203,7 @@ class Protocol
     # TODO: remove all references to 4C fridge and replace with refridgerator
     gops = group_packages(myops)
     show do
-      title "Take #{PCR_PKG_NAME.pluralize(gops.length)} from the #{FRIDGE_PRE} with a Paper Towel and place on the #{BENCH_POST}"
+      title "Take #{PCR_PKG_NAME.pluralize(gops.length)} from the #{FRIDGE_PRE} with a Paper Towel and place in the BSC"
       # check "Take the following from the #{FRIDGE} and place #{pluralizer(PACKAGE, gops.length)} on the #{BENCH}"
       gops.each do |unit, _ops|
         check 'Take package ' "#{unit.bold}" ' from fridge.'

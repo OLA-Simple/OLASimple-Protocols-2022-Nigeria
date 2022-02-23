@@ -46,8 +46,8 @@ module OLAKits
                 ],
                 "diluent A" => "0"
             },
-            "PCR to Ligation Mix Volume" => 1.2,
-            "Ligation Mix Rehydration Volume" => 24,
+            "PCR to Ligation Mix Volume" => 4,
+            "Ligation Mix Rehydration Volume" => 20,
             "Number of Samples" => 2,
             "Number of Sub Packages" => 2
         },
@@ -70,11 +70,11 @@ module OLAKits
             },
             "Number of Samples" => 2,
             "Number of Sub Packages" => 4,
-            "Stop Rehydration Volume" => 36,
-            "Gold Rehydration Volume" => 600,
+            "Stop Rehydration Volume" => 67,
+            "Gold Rehydration Volume" => 670,
             "Gold to Strip Volume" => 40,
             "Sample to Strip Volume" => 24,
-            "Stop to Sample Volume" => 2.4,
+            "Stop to Sample Volume" => 4,
             "Sample Volume" => 2.4,
             "Mutation Labels" => [
                 "K65R",
