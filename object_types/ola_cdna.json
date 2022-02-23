@@ -1,0 +1,20 @@
+{
+  "name": "OLA cDNA",
+  "description": "OLA cDNA",
+  "min": 0,
+  "max": 1,
+  "handler": "sample_container",
+  "safety": "No safety information",
+  "clean up": "No cleanup information",
+  "data": "No data",
+  "vendor": "No vendor information",
+  "unit": "OLASimple Sample",
+  "cost": 0.01,
+  "release method": "return",
+  "release description": "",
+  "image": "",
+  "prefix": "",
+  "rows": null,
+  "columns": null,
+  "sample_type": "OLASimple Sample"
+}
