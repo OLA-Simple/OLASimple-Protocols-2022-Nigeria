@@ -359,19 +359,29 @@ class Protocol
                                  'to mix.', 'to pull down liquid', AREA, mynote = nil)
 
     t = Table.new
-    cycles_temp = "<table style=\"width:100%\">
-                    <tr><td>95C</td></tr>
+    # temps and times for first 3 cycles
+    cycles_temp_initial = "<table style=\"width:100%\">
+                    <tr><td>94C</td></tr>
                     <tr><td>57C</td></tr>
-                    <tr><td>72C</td></tr>
+                    <tr><td>68C</td></tr>
+      </table>"
+    cycles_time_initial = "<table style=\"width:100%\">
+                           <tr><td>15 sec</td></tr>
+                           <tr><td>30 sec</td></tr>
+                           <tr><td>20 sec</td></tr>
+      </table>"
+    # temps and times for 42 cycles
+    cycles_temp = "<table style=\"width:100%\">
+                    <tr><td>94C</td></tr>
+                    <tr><td>68C</td></tr>
       </table>"
     cycles_time = "<table style=\"width:100%\">
-                    <tr><td>30 sec</td></tr>
-                    <tr><td>30 sec</td></tr>
-                    <tr><td>30 sec</td></tr>
+                           <tr><td>10 sec</td></tr>
+                           <tr><td>20 sec</td></tr>
       </table>"
-    t.add_column('STEP', ['Initial Melt', '45 cycles of', 'Extension', 'Hold'])
-    t.add_column('TEMP', ['95C', cycles_temp, '72C', '4C'])
-    t.add_column('TIME', ['4 min', cycles_time, '7 min', 'forever'])
+    t.add_column('STEP', ['Initial Melt', '3 cycles of', '42 cycles of', 'Extension', 'Hold'])
+    t.add_column('TEMP', ['94C', cycles_temp_initial, cycles_temp, '68C', '4C'])
+    t.add_column('TIME', ['2 min', cycles_time_initial, cycles_time, '4 min', 'forever'])
 
     show do
       title 'Run PCR'
