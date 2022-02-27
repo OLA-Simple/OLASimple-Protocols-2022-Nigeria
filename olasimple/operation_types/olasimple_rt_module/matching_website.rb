@@ -1,7 +1,4 @@
 # frozen_string_literal: true
-# protocol that matches the version I have deployed locally
-# Add to this as you add things to that
-
 
 needs 'OLASimple/OLAConstants'
 needs 'OLASimple/OLALib'
@@ -18,14 +15,27 @@ class Protocol
     include JobComments
     include OLAKitIDs
 
+
+  ##########################################
+  # INPUT/OUTPUT
+  ##########################################
     INPUT = 'Patient Sample'
     OUTPUT = 'cDNA'
     PACK = 'RT Pack'
     
+    
+  ##########################################
+  # TERMINOLOGY
+  ##########################################
+
+  ##########################################
+  # Protocol Specifics
+  ##########################################
+    
     PACK_HASH = RT_UNIT
     AREA = PRE_PCR
     SAMPLE_VOLUME = 20 # volume of sample to add to PCR mix
-     CENTRIFUGE_TIME = '5 seconds' # time to pulse centrifuge to pull down dried powder
+    CENTRIFUGE_TIME = '5 seconds' # time to pulse centrifuge to pull down dried powder
     VORTEX_TIME = '5 seconds' # time to pulse vortex to mix
 
     TUBE_CAP_WARNING = 'Check to make sure tube caps are completely closed.'
@@ -39,7 +49,10 @@ class Protocol
     ].freeze
 
     SAMPLE_ALIAS = 'RT cDNA'
-
+    
+      # for debugging and tests
+      PREV_COMPONENT = '6'
+      PREV_UNIT = 'E'
 
   
     def main
@@ -48,7 +61,20 @@ class Protocol
         operations.running.make
         save_user operations
 
-# Debug info goes here
+        # Debug info goes here #
+        # these are the values used when running tests 
+        if debug
+          labels = %w[001 002]
+          kit_num = 'K001'
+          operations.each.with_index do |op, i|
+            op.input(INPUT).item.associate(SAMPLE_KEY, labels[i])
+            op.input(INPUT).item.associate(COMPONENT_KEY, PREV_COMPONENT)
+            op.input(INPUT).item.associate(KIT_KEY, kit_num)
+            op.input(INPUT).item.associate(UNIT_KEY, PREV_UNIT)
+            op.input(INPUT).item.associate(PATIENT_KEY, "A PATIENT ID")        
+          end #each with index
+        end #if debug
+
 
         show do
             operations.each do |op|
@@ -56,21 +82,38 @@ class Protocol
             end # iteration
         end # show block
         
+        show do
+            note "PACK_HASH is #{PACK_HASH}"
+        end
+        
+
+
+        
         save_temporary_input_values(operations, INPUT)
  
         
         operations.each do |op|
             op.temporary[:pack_hash] = PACK_HASH
+            show do 
+                note "op.temporary[:pack_hash] is #{op.temporary[:pack_hash]}"
+            end 
         end # operations each do for PACK_HASH
 
         run_checks(operations)
         kit_introduction(operations.running)
-        record_technician_id
-        safety_warning
-    
-        area_preparation('pre-PCR', MATERIALS, POST_PCR)
-        simple_clean("OLASimple RT Module")
+        
+        
+        
+        
+        # record_technician_id
+        # safety_warning
+        # area_preparation('pre-PCR', MATERIALS, POST_PCR)
+        # simple_clean("OLASimple RT Module")
 
+
+        get_samples_from_previous_op(operations.running)
+        
+        #get_rt_packages(operations.running)
 
     end #main
     
@@ -78,22 +121,61 @@ class Protocol
     # Instructions
     #######################################
 
-  def kit_introduction(ops)
-    show do
-      title "Welcome to OLASimple RT (Reverse Transcription)"
-      note 'In this protocol you will be converting the RNA generated from the E module into cDNA'
-    end # welcome block
+    def kit_introduction(ops)
+        show do
+            title "Welcome to OLASimple RT (Reverse Transcription)"
+            note 'In this protocol you will be converting the RNA generated from the E module into cDNA'
+        end # welcome block
 
-    show do
-      title 'RNase degrades RNA'
-      note 'RNA is prone to degradation by RNase present in our eyes, skin, and breath.'
-      note 'Avoid opening tubes outside the Biosafety Cabinet (BSC).'
-      bullet 'Change gloves whenever you suspect potential RNAse contamination'
-    end # RNase warning block
-  end # kit_introduction
-
-
+        show do
+            title 'RNase degrades RNA'
+            note 'RNA is prone to degradation by RNase present in our eyes, skin, and breath.'
+            note 'Avoid opening tubes outside the Biosafety Cabinet (BSC).'
+            bullet 'Change gloves whenever you suspect potential RNAse contamination'
+        end # RNase warning block
+    end # kit_introduction
     
+    
+    def get_samples_from_previous_op(myops)
+        # get the results of the extraction
+        gops = group_packages(myops)
+        show do
+            title "Place #{SAMPLE_ALIAS.bold} samples in #{AREA.bold} area."
+            note "In #{AREA.bold} area, retrieve RT tubes from thermocycler and place into a rack."
+            
+            tubes = []
+            gops.each do |unit, ops|
+
+                ops.each_with_index do |op, i|
+                    tubes << make_tube(closedtube, '', ref(op.input(INPUT).item).split('-'), 'medium', true).translate!(100 * i)
+                end # each with index, create tube images and add to array
+
+                img = SVGElement.new(children: tubes, boundy: 300, boundx: 300).translate!(20) # create image
+
+                note display_svg(img) # display image -- method from image library
+            end # gops each do
+
+        end # show block
+        
+    end #method
+
+
+
+    def get_rt_packages(myops)
+        gops = group_packages(myops)
+        show do
+            note "gops is #{gops}"
+        end
+        show do
+        title "Take #{RT_PKG_NAME.pluralize(gops.length)} from the #{FRIDGE_PRE} with a Paper Towel and place on the #{BENCH_POST}"
+            gops.each do |unit, _ops|
+                check "unit is #{unit}"
+                check "Take package #{unit.bold} from fridge."
+                check "Place package #{unit.bold} on the bench."
+            end # take and place block
+        end # show block
+    end #get_rt_packages method   
+
     
     
     
