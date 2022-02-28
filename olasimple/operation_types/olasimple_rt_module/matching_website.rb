@@ -20,7 +20,8 @@ class Protocol
   # INPUT/OUTPUT
   ##########################################
     INPUT = 'Patient Sample'
-    OUTPUT = 'cDNA'
+    #OUTPUT = 'cDNA'
+    OUTPUT = 'Patient Sample'
     PACK = 'RT Pack'
     
     
@@ -64,6 +65,9 @@ class Protocol
         # Debug info goes here #
         # these are the values used when running tests 
         if debug
+            show do
+                note "this is the debug stuff"
+            end
           labels = %w[001 002]
           kit_num = 'K001'
           operations.each.with_index do |op, i|
@@ -86,9 +90,6 @@ class Protocol
             note "PACK_HASH is #{PACK_HASH}"
         end
         
-
-
-        
         save_temporary_input_values(operations, INPUT)
  
         
@@ -100,10 +101,10 @@ class Protocol
         end # operations each do for PACK_HASH
 
         run_checks(operations)
-        kit_introduction(operations.running)
-        
-        
-        
+        # kit_introduction(operations.running)
+        show do
+            note "operations.running is #{operations.running}"
+        end
         
         # record_technician_id
         # safety_warning
@@ -111,9 +112,17 @@ class Protocol
         # simple_clean("OLASimple RT Module")
 
 
-        get_samples_from_previous_op(operations.running)
+        # get_incoming_samples(operations.running) #get tubes from previous op
         
-        #get_rt_packages(operations.running)
+        # validate_incoming_samples(operations.running) # check tubes from previous op
+        
+        #retrieve_kit_packages(operations.running)
+        #validate_kit_packages(operations.running)
+        centrifuge_samples(operations.running)
+        
+        transfer_samples(operations.running)
+        
+        
 
     end #main
     
@@ -136,7 +145,7 @@ class Protocol
     end # kit_introduction
     
     
-    def get_samples_from_previous_op(myops)
+    def get_incoming_samples(myops)
         # get the results of the extraction
         gops = group_packages(myops)
         show do
@@ -159,13 +168,22 @@ class Protocol
         
     end #method
 
+    def validate_incoming_samples(myops)
+        expected_inputs = myops.map { |op| ref(op.input(INPUT).item) }
+        show do
+            note "expected inputs are #{expected_inputs}"
+        end
+        sample_validation_with_multiple_tries(expected_inputs)
+    end
 
-
-    def get_rt_packages(myops)
+    def retrieve_kit_packages(myops)
+        # not picking up debug info -- not sure why
         gops = group_packages(myops)
+        
         show do
             note "gops is #{gops}"
-        end
+        end # test show block
+        
         show do
         title "Take #{RT_PKG_NAME.pluralize(gops.length)} from the #{FRIDGE_PRE} with a Paper Towel and place on the #{BENCH_POST}"
             gops.each do |unit, _ops|
@@ -175,8 +193,59 @@ class Protocol
             end # take and place block
         end # show block
     end #get_rt_packages method   
-
     
+    
+    def centrifuge_samples(ops)
+        #labels = ops.map { |op| ref(op.output(OUTPUT).item) }
+        show do
+          title 'Centrifuge all samples for 5 seconds'
+          check 'Place all tubes and samples in the centrifuge, along with a balancing tube. It is important to balance the tubes.'
+          check 'Centrifuge the tubes for 5 seconds to pull down liquid and dried reagents'
+        end
+    end # centrifuge samples
+
+    def transfer_samples(myops)
+        gops = group_packages(myops)
+
+        gops.each do |_unit, ops|
+          samples = ops.map { |op| op.input(INPUT).item }
+          sample_refs = samples.map { |sample| ref(sample) }
+          
+          show do
+              note "samples are #{samples} and sample_refs are #{sample_refs}"
+              # samples refs are correct E6-001 and E6-002
+          end # inner show block for testing
+
+          ops.each do |op|
+            from = ref(op.input(INPUT).item)
+            to = ref(op.output(OUTPUT).item)
+            # tubeS = make_tube(opentube, [SAMPLE_ALIAS, from], '', fluid = 'medium')
+            tubeS = make_tube(opentube, [from], '', fluid = 'medium')
+            tubeP = make_tube(opentube, ["RT number goes here", to], '', fluid = 'medium').scale!(0.75)
+            #tubeS_closed = make_tube(closedtube, [SAMPLE_ALIAS, from], '', fluid = 'medium')
+            tubeS_closed = make_tube(closedtube, [from], '', fluid = 'medium')
+            tubeP_closed = make_tube(closedtube, ["RT number goes here", to], '', fluid = 'medium').translate!(0,40).scale!(0.75)
+
+            #pre_transfer_validation_with_multiple_tries(from, to, tubeS_closed, tubeP_closed)
+
+                show do
+                  raw transfer_title_proc(SAMPLE_VOLUME, "#{from}", "<RT NUMBER GOES HERE> #{to}")
+                  
+                  note "part that follows transfer_title_proc call"
+                  note "#{from} will be used to dissolve the lyophilized RT mixture."
+                  note "Carefully open tube #{from.bold} and tube <RT NUMBER GOES HERE> #{to.bold}" # should be RT tube with number
+                  note "Use a #{P20_PRE} pipette and set it to <b>[2 0 0]</b>."
+                  check "Transfer #{SAMPLE_VOLUME}uL from #{from.bold} into <RT NUMBER GOES HERE> #{to.bold}" # same should be RT tube with number
+                  
+                  
+                  img = make_transfer(tubeS, tubeP, 300, "#{SAMPLE_VOLUME}uL", "(#{P20_PRE} pipette)")
+                  img.translate!(25)
+                  note display_svg(img, 0.75)
+                  check 'Close tubes and discard pipette tip'
+                end # show block
+            end #ops each do
+        end #end gops each do
+    end #method
     
     
     
