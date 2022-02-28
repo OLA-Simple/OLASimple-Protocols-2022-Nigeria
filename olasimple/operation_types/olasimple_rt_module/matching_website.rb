@@ -49,7 +49,7 @@ class Protocol
         'Molecular grade ethanol'
     ].freeze
 
-    SAMPLE_ALIAS = 'RT cDNA'
+    SAMPLE_ALIAS = 'RNA Extract'
     
       # for debugging and tests
       PREV_COMPONENT = '6'
@@ -62,12 +62,7 @@ class Protocol
         operations.running.make
         save_user operations
 
-        # Debug info goes here #
-        # these are the values used when running tests 
         if debug
-            show do
-                note "this is the debug stuff"
-            end
           labels = %w[001 002]
           kit_num = 'K001'
           operations.each.with_index do |op, i|
@@ -78,50 +73,47 @@ class Protocol
             op.input(INPUT).item.associate(PATIENT_KEY, "A PATIENT ID")        
           end #each with index
         end #if debug
-
-
-        show do
-            operations.each do |op|
-            note "input is #{op.input(INPUT)}"
-            end # iteration
-        end # show block
-        
-        show do
-            note "PACK_HASH is #{PACK_HASH}"
-        end
         
         save_temporary_input_values(operations, INPUT)
- 
+
         
         operations.each do |op|
             op.temporary[:pack_hash] = PACK_HASH
-            show do 
-                note "op.temporary[:pack_hash] is #{op.temporary[:pack_hash]}"
-            end 
         end # operations each do for PACK_HASH
+        
+        save_temporary_output_values(operations) # defined in olalib
 
         run_checks(operations)
-        # kit_introduction(operations.running)
+        kit_introduction(operations.running)
+
+        
+        record_technician_id
+        safety_warning
+        area_preparation('pre-PCR', MATERIALS, POST_PCR)
+        simple_clean("OLASimple RT Module")
+
+
+        get_incoming_samples(operations.running) #get tubes from previous op
+        validate_incoming_samples(operations.running) # check tubes from previous op
+        
         show do
-            note "operations.running is #{operations.running}"
+            note "now get kit"
         end
         
-        # record_technician_id
-        # safety_warning
-        # area_preparation('pre-PCR', MATERIALS, POST_PCR)
-        # simple_clean("OLASimple RT Module")
-
-
-        # get_incoming_samples(operations.running) #get tubes from previous op
+        retrieve_kit_packages(operations.running) # get kit for RT procedure
+        validate_kit_packages(operations.running) #check tubes for RT procedure
         
-        # validate_incoming_samples(operations.running) # check tubes from previous op
+        show do
+            note "now open kit and check that it's correct"
+        end 
         
-        #retrieve_kit_packages(operations.running)
-        #validate_kit_packages(operations.running)
+        open_kit_packages(operations.running)
+        
         centrifuge_samples(operations.running)
         
         transfer_samples(operations.running)
         
+        start_thermocycler(operations.running)
         
 
     end #main
@@ -150,40 +142,26 @@ class Protocol
         gops = group_packages(myops)
         show do
             title "Place #{SAMPLE_ALIAS.bold} samples in #{AREA.bold} area."
-            note "In #{AREA.bold} area, retrieve RT tubes from thermocycler and place into a rack."
-            
+            note "In #{AREA.bold} area, retrieve tubes from thermocycler and place into a rack."
             tubes = []
             gops.each do |unit, ops|
-
                 ops.each_with_index do |op, i|
                     tubes << make_tube(closedtube, '', ref(op.input(INPUT).item).split('-'), 'medium', true).translate!(100 * i)
                 end # each with index, create tube images and add to array
 
                 img = SVGElement.new(children: tubes, boundy: 300, boundx: 300).translate!(20) # create image
-
                 note display_svg(img) # display image -- method from image library
             end # gops each do
-
         end # show block
-        
     end #method
 
     def validate_incoming_samples(myops)
         expected_inputs = myops.map { |op| ref(op.input(INPUT).item) }
-        show do
-            note "expected inputs are #{expected_inputs}"
-        end
         sample_validation_with_multiple_tries(expected_inputs)
     end
 
     def retrieve_kit_packages(myops)
-        # not picking up debug info -- not sure why
         gops = group_packages(myops)
-        
-        show do
-            note "gops is #{gops}"
-        end # test show block
-        
         show do
         title "Take #{RT_PKG_NAME.pluralize(gops.length)} from the #{FRIDGE_PRE} with a Paper Towel and place on the #{BENCH_POST}"
             gops.each do |unit, _ops|
@@ -192,9 +170,54 @@ class Protocol
                 check "Place package #{unit.bold} on the bench."
             end # take and place block
         end # show block
-    end #get_rt_packages method   
+    end # method   
+    
+    def validate_kit_packages(myops)
+    # unit here is the package -- this_package
+        group_packages(myops).each { |unit, _ops| package_validation_with_multiple_tries(unit) }
+    end
     
     
+    
+    def open_kit_packages(myops)
+        grouped_by_unit = myops.group_by { |op| op.temporary[:output_kit_and_unit] }
+        
+        grouped_by_unit.each do |kit_and_unit, ops|
+            show do
+                note "kit and unit is #{kit_and_unit}"
+            end
+        end
+            # ops.each do |op|
+            #     op.make_item_and_alias(OUTPUT, 'sample tube', INPUT)
+            # end # ops each do
+        # inthis case there are no subpackages
+        # show_open_package(kit_and_unit, '', ops.first.temporary[:pack_hash][NUM_SUB_PACKAGES_FIELD_VALUE]) do
+        # rt_tube_labels = ops.map { |op| op.output_tube_label(OUTPUT) }
+        # num_samples = ops.first.temporary[:pack_hash][NUM_SAMPLES_FIELD_VALUE]
+        # kit, unit, component, sample = ops.first.output_tokens(OUTPUT)
+
+        # grid = SVGGrid.new(num_samples, 1, 75, 10)
+        # rt_tube_labels.each_with_index do |tube_label, i|
+        #   # powder is saying how to describe what's in the tube
+        #   rt_tube = make_tube(closedtube, '', tube_label, 'powder', true).scale(0.75)
+        #   grid.add(rt_tube, i, 0)
+        # end #end each wit index
+
+        # grid.boundy = closedtube.boundy * 0.75
+        # grid.align_with(diluentATube, 'center-right')
+        # grid.align!('center-left')
+        # grid.translate!(25, 25)
+        # img = SVGElement.new(children: [diluentATube, grid], boundy: diluentATube.boundy + 50, boundx: 300).translate!(20)
+
+        # check "Look for #{num_samples + 1} #{'tube'.pluralize(num_samples)}"
+        # check 'Place tubes on a rack'
+        # note display_svg(img, 0.75)
+    #   end #show_open_package do
+    # end #grouped by unit
+  end #method
+
+
+
     def centrifuge_samples(ops)
         #labels = ops.map { |op| ref(op.output(OUTPUT).item) }
         show do
@@ -219,6 +242,10 @@ class Protocol
           ops.each do |op|
             from = ref(op.input(INPUT).item)
             to = ref(op.output(OUTPUT).item)
+            show do
+                note "from is #{from}"
+                note "to is #{to}"
+            end
             # tubeS = make_tube(opentube, [SAMPLE_ALIAS, from], '', fluid = 'medium')
             tubeS = make_tube(opentube, [from], '', fluid = 'medium')
             tubeP = make_tube(opentube, ["RT number goes here", to], '', fluid = 'medium').scale!(0.75)
@@ -229,13 +256,13 @@ class Protocol
             #pre_transfer_validation_with_multiple_tries(from, to, tubeS_closed, tubeP_closed)
 
                 show do
-                  raw transfer_title_proc(SAMPLE_VOLUME, "#{from}", "<RT NUMBER GOES HERE> #{to}")
+                  raw transfer_title_proc(SAMPLE_VOLUME, "#{from}", "RT NUMBER GOES HERE #{to}")
                   
                   note "part that follows transfer_title_proc call"
                   note "#{from} will be used to dissolve the lyophilized RT mixture."
                   note "Carefully open tube #{from.bold} and tube <RT NUMBER GOES HERE> #{to.bold}" # should be RT tube with number
                   note "Use a #{P20_PRE} pipette and set it to <b>[2 0 0]</b>."
-                  check "Transfer #{SAMPLE_VOLUME}uL from #{from.bold} into <RT NUMBER GOES HERE> #{to.bold}" # same should be RT tube with number
+                  check "Transfer #{SAMPLE_VOLUME}uL from #{from.bold} into RT NUMBER GOES HERE #{to.bold}" # same should be RT tube with number
                   
                   
                   img = make_transfer(tubeS, tubeP, 300, "#{SAMPLE_VOLUME}uL", "(#{P20_PRE} pipette)")
@@ -248,10 +275,39 @@ class Protocol
     end #method
     
     
+    def start_thermocycler(ops)
+        # Adds the RT tubes to the thermocycler.
+        # Instructions for RT cycles.
+        #
+        samples = ops.map { |op| op.output(OUTPUT).item }
+        sample_refs = samples.map { |sample| ref(sample) }
+
+        vortex_and_centrifuge_helper("RT TUBES",
+                                     sample_refs,
+                                     VORTEX_TIME, CENTRIFUGE_TIME,
+                                     'to mix.', 'to pull down liquid', AREA, mynote = nil)
     
+        t = Table.new
     
-    
-    
+        t.add_column('STEP', ['RT Step'])
+        t.add_column('TEMP', ['55C'])
+        t.add_column('TIME', ['10 min'])
+
+        show do
+          title 'Run RT Reaction'
+          check 'Close all the lids of the pipette tip boxes and pre-PCR rack'
+          check "Take only the RT tubes (#{sample_refs.to_sentence}) with you"
+          check 'Place the RT samples in the assigned thermocycler, close, and tighten the lid'
+          check "Select the program named NAME OF PROGRAM TK under OS"
+          check "Hit #{'Run'.quote} and #{'OK to 20uL'.quote}"
+          table t
+        end # show block for reaction
+
+        operations.each do |op|
+          op.output(OUTPUT).item.move THERMOCYCLER
+        end # ops each do
+    end # method 
+
     
     
   #######################################
