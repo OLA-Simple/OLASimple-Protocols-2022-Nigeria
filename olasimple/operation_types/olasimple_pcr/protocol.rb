@@ -98,20 +98,24 @@ class Protocol
     end
 
     save_temporary_input_values(operations, INPUT)
+    
     operations.each do |op|
       op.temporary[:pack_hash] = PACK_HASH
     end
+    
+    
     save_temporary_output_values(operations)
 
     run_checks(operations)
     kit_introduction(operations.running)
     record_technician_id
     safety_warning
-    area_preparation('post-PCR', MATERIALS, POST_PCR)
+    area_preparation('post-PCR', MATERIALS, PRE_PCR)
     simple_clean("OLASimple PCR")
 
     get_inputs(operations.running)
     validate_pcr_inputs(operations.running)
+    
     get_pcr_packages(operations.running)
     validate_pcr_packages(operations.running)
     open_pcr_packages(operations.running)
@@ -120,10 +124,12 @@ class Protocol
     # nuttada thaw
     # nuttada needs vortex + centrigure
     centrifuge_samples(sorted_ops.running)
+    
     resuspend_pcr_mix(sorted_ops.running)
+    
     add_template_to_master_mix(sorted_ops.running)
   
-    #cleanup(sorted_ops) Removed per Jordan's edits
+    cleanup(sorted_ops) # Removed per Jordan's edits
     start_thermocycler(sorted_ops.running)
     wash_self
     accept_comments
@@ -385,7 +391,7 @@ class Protocol
 
     show do
       title 'Run PCR'
-      check 'Close all the lids of the pipette tip boxes and pre-PCR rack'
+      check 'Close all the lids of the pipette tip boxes and post-PCR rack'
       check "Take only the PCR tubes (#{sample_refs.to_sentence}) with you"
       check 'Place the PCR tubes in the assigned thermocycler, close, and tighten the lid'
       check "Select the program named #{PCR_CYCLE} under OS"
@@ -424,3 +430,4 @@ class Protocol
     end
   end
 end # Class
+
