@@ -52,7 +52,7 @@ module OLAConstants
   MUTATIONKEY = :mutations
 
   # kit components
-  DILUENT_A = "Diluent L0" # what to call the Diluent A tube (i.e. water)
+  DILUENT_A = "Diluent A" # what to call the Diluent A tube (i.e. water)
   STOP_MIX = "stop mix" # what to call the input samples (cell lysates)
   GOLD_MIX = "gold mix"
   STRIP = "detection strip"
