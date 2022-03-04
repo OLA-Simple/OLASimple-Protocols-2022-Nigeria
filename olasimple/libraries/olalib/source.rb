@@ -565,10 +565,10 @@ module OLALib
     ShowBlock.new(self).run(&p)
   end
 
-  def vortex_proc(sample_identifier, sample_labels, time, reason)
+  def vortex_proc(sample_identifier, sample_labels, time, reason, vortex_type = nil)
     p = proc do
       # check "Vortex #{pluralizer(sample_identifier, num)} for #{time} #{reason}"
-      check "Vortex #{sample_identifier.pluralize(sample_labels.length)} #{sample_labels.join(', ').bold} for #{time} #{reason}"
+      check "#{vortex_type} Vortex #{sample_identifier.pluralize(sample_labels.length)} #{sample_labels.join(', ').bold} for #{time} #{reason}"
       # check "Vortex #{sample_identifier.pluralize(sample_labels.length)} #{sample_labels.map { |label| label.bold })}
     end
     ShowBlock.new(self).run(&p)
@@ -600,14 +600,14 @@ module OLALib
   def vortex_and_centrifuge_helper(sample_identifier,
                                    sample_labels,
                                    vortex_time, spin_time,
-                                   vortex_reason, spin_reason, area, mynote = nil)
+                                   vortex_reason, spin_reason, area, mynote = nil, vortex_type = nil)
     num = sample_labels.length
     show do
-      title "Vortex and #{CENTRIFUGE_VERB} #{sample_identifier.pluralize(num)}"
+      title "#{vortex_type} Vortex and #{CENTRIFUGE_VERB} #{sample_identifier.pluralize(num)}"
       note mynote unless mynote.nil?
       warning "Close all tube caps."
       # note "Using #{sample_identifier.pluralize(num)} #{sample_labels.join(', ').bold}:"
-      raw vortex_proc(sample_identifier, sample_labels, vortex_time, vortex_reason)
+      raw vortex_proc(sample_identifier, sample_labels, vortex_time, vortex_reason, vortex_type)
       raw centrifuge_proc(sample_identifier, sample_labels, spin_time, spin_reason, area)
       check 'Place the tubes back on rack'
     end
