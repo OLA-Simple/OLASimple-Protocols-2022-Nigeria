@@ -361,9 +361,9 @@ class Protocol
 
     vortex_and_centrifuge_helper(PCR_SAMPLE,
                                  sample_refs,
-                                 VORTEX_TIME, CENTRIFUGE_TIME,
-                                 'to mix.', 'to pull down liquid', AREA, mynote = nil)
-
+                                 "2 seconds, twice", CENTRIFUGE_TIME,
+                                 'to mix.', 'to pull down liquid', AREA, mynote = nil, vortex_type = "Pulse")
+    
     t = Table.new
     # temps and times for first 3 cycles
     cycles_temp_initial = "<table style=\"width:100%\">
