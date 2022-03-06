@@ -29,7 +29,7 @@ class Protocol
   INPUT = 'PCR Product'
   OUTPUT = 'Ligation Product'
   PACK = 'Ligation Pack'
-  A = 'Diluent A' #Update to be LO??
+  A = 'Diluent L0' #Update to be LO??
 
   ##########################################
   # TERMINOLOGY
@@ -230,11 +230,11 @@ class Protocol
 
   def centrifuge_samples(ops)
     labels = ops.map { |op| op.temporary[:label_string] }
-    diluentALabels = ops.map { |op| op.ref('diluent A') }.uniq
+    diluentL0Labels = ops.map { |op| op.ref('diluent L0') }.uniq
     show do
       title 'Centrifuge Diluent L0 and Ligation tubes for 5 seconds to pull down reagents'
       note 'Put the tag side of the rack toward the center of the centrifuge'
-      check "Centrifuge #{(labels + diluentALabels).to_sentence.bold} for 5 seconds."
+      check "Centrifuge #{(labels + diluentL0Labels).to_sentence.bold} for 5 seconds."
     end
     # centrifuge_helper("tube set", labels, CENTRIFUGE_TIME,
     #                   "to pull down dried powder.",
@@ -278,15 +278,15 @@ class Protocol
           # All transfers at once...
           from = op.ref('diluent A')
           #tubeA = make_tube(opentube, [DILUENT_A, from], op.tube_label('diluent A'), 'medium')
-          tubeA = make_tube(opentube, [DILUENT_A], op.tube_label('diluent A'), 'medium')
+          tubeA = make_tube(opentube, [DILUENT_L], op.tube_label('diluent L0'), 'medium')
           show do
-            title "Add #{DILUENT_A} to #{LIGATION_SAMPLE}s #{op.temporary[:label_string].bold}"
+            title "Add #{DILUENT_L} to #{LIGATION_SAMPLE}s #{op.temporary[:label_string].bold}"
             labels.map! { |l| "<b>#{l}</b>" }
-            note "In this step we will be adding #{LIGATION_VOLUME}uL of #{DILUENT_A} into #{pluralizer('tube', COMPONENTS.length)} "
+            note "In this step we will be adding #{LIGATION_VOLUME}uL of #{DILUENT_L} into #{pluralizer('tube', COMPONENTS.length)} "
             "of the colored strip of tubes labeled <b>#{labels[0]} to #{labels[-1]}</b>"
             note "Set a #{P20_POST} pipette to [2 0 0]."
-            note "Using #{P20_POST} add #{LIGATION_VOLUME}uL from #{DILUENT_A} into each of the #{COMPONENTS.length} tubes."
-            warning "Only open one of the ligation tubes at a time and discard. Change your pipette tip after every transfer of #{DILUENT_A}."
+            note "Using #{P20_POST} add #{LIGATION_VOLUME}uL from #{DILUENT_L} into each of the #{COMPONENTS.length} tubes."
+            warning "Only open one of the ligation tubes at a time and discard. Change your pipette tip after every transfer of #{DILUENT_L}."
 
             ligation_tubes = display_ligation_tubes(*op.output_tokens(OUTPUT), COLORS).translate!(0, -20)
 
@@ -309,12 +309,12 @@ class Protocol
           ligation_tubes.align!('bottom-left')
           ligation_tubes.align_with(tube, 'bottom-right')
           ligation_tubes.translate!(50)
-          tubeA = make_tube(closedtube, DILUENT_A, op.tube_label('diluent A'), 'medium')
+          tubeA = make_tube(closedtube, DILUENT_L, op.tube_label('diluent L0'), 'medium')
           image = SVGElement.new(children: [tubeA, ligation_tubes], boundx: 1000, boundy: tube.boundy)
           image.translate!(50, -50)
           show do
-            title "Position #{DILUENT_A} #{from.bold} and colored tubes #{op.temporary[:label_string].bold} in front of you."
-            note "In the next steps you will dissolve the powder in #{pluralizer('tube', COMPONENTS.length)} using #{DILUENT_A}"
+            title "Position #{DILUENT_L} #{from.bold} and colored tubes #{op.temporary[:label_string].bold} in front of you."
+            note "In the next steps you will dissolve the powder in #{pluralizer('tube', COMPONENTS.length)} using #{DILUENT_L}"
             note display_svg(image, 0.75)
           end
           ligation_tubes_svg = display_ligation_tubes(*op.output_tokens(OUTPUT), COLORS).translate!(0, -20)
@@ -329,7 +329,7 @@ class Protocol
               note "Set a #{P200_POST} pipette to [0 2 4]."
               check "Add #{LIGATION_VOLUME}uL from #{from.bold} into tube #{label.bold}"
               note "Close tube #{label.bold}"
-              tubeA = make_tube(opentube, [DILUENT_A, from], '', 'medium')
+              tubeA = make_tube(opentube, [DILUENT_L, from], '', 'medium')
               transfer_image = transfer_to_ligation_tubes_with_highlight(
                 tubeA, i, *op.output_tokens(OUTPUT), COLORS, LIGATION_VOLUME, "(#{P200_POST} pipette)"
               )
@@ -493,7 +493,7 @@ class Protocol
     show do
       title "Discard items into the #{WASTE_POST}"
 
-      note "Discard #{DILUENT_A} into the #{WASTE_POST} in the #{AREA}"
+      note "Discard #{DILUENT_L} into the #{WASTE_POST} in the #{AREA}"
 #      all_refs.each { |r| bullet r }
     end
     # clean_area AREA
