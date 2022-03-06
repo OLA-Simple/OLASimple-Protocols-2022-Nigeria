@@ -387,7 +387,7 @@ class Protocol
             transfer_image = make_transfer(tubeP, ligation_tubes, 300, "#{SAMPLE_VOLUME}uL", "(Post-PCR P20 pipette)")
             note display_svg(transfer_image, 0.6)
             labels.each do |l|
-              check "Transfer #{SAMPLE_VOLUME}uL from #{from.bold} into #{l}"
+              check "Transfer #{SAMPLE_VOLUME}uL from #{from.bold} into #{l}. Discard tip, close cap."
             end
           end
         else
