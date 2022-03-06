@@ -246,7 +246,7 @@ class Protocol
   def vortex_and_centrifuge_samples(ops)
     labels = ops.map { |op| op.temporary[:label_string] }
     vortex_and_centrifuge_helper('tube set', labels, CENTRIFUGE_TIME, VORTEX_TIME,
-                                 'to mix.', 'to pull down the fluid.', AREA)
+                                 'to mix.', 'to pull down the fluid.', AREA, vortex_type = 'Pulse')
     show do
       title 'Check your tubes.'
       note 'Dried powder of reagents should be dissolved at this point. '
