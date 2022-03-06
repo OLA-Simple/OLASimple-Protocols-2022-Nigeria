@@ -53,7 +53,7 @@ module OLAConstants
 
   # kit components
   DILUENT_A = "Diluent A" # what to call the Diluent A tube (i.e. water)
-  DILUENT_L = "Diluent L" # what to call the Diluent L tube (i.e. water)
+  DILUENT_L = "Diluent L0" # what to call the Diluent L tube (i.e. water)
   STOP_MIX = "stop mix" # what to call the input samples (cell lysates)
   GOLD_MIX = "gold mix"
   STRIP = "detection strip"
