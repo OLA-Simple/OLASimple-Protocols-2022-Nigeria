@@ -337,32 +337,8 @@ class Protocol
             end
           end
         end
-        # vortex_and_centrifuge_helper(LIGATION_SAMPLE,
-        #                              op.temporary[:labels],
-        #                              VORTEX_TIME,
-        #                              CENTRIFUGE_TIME,
-        #                              "to mix well.",
-        #                              "to pull down liquid.",
-        #                              img)
-
-        # show do
-        #   title "Mix ligation tubes #{op.temporary[:labels][0]} through #{op.temporary[:labels][-1]}"
-        #   note display_svg(display_ligation_tubes(op.temporary[:input_kit], THIS_UNIT, COMPONENTS, op.temporary[:input_sample]), 0.5)
-        #   warning "Make sure tubes are firmly closed before proceeding."
-        #   check "Vortex #{pluralizer("tube", COMPONENTS.length)} for 5 seconds to mix well."
-        #   warning "Make sure all powder is dissolved. Vortex for 10 more seconds to dissolve powder."
-        #   check "Centrifuge #{pluralizer("tube", COMPONENTS.length)} for 5 seconds to pull down liquid."
-        #   check "Place tubes back into the rack."
-        # end
       end
     end
-
-    # vortex_and_centrifuge_helper("tube set",
-    #                              myops.map { |op| op.temporary[:label_string] },
-    #                              VORTEX_TIME,
-    #                              CENTRIFUGE_TIME,
-    #                              "to mix well.",
-    #                              "to pull down liquid.")
   end
 
   def add_template(myops, expert_mode)
@@ -416,16 +392,6 @@ class Protocol
             end
           end
         end
-
-        # ligation_tubes_svg = display_ligation_tubes(*op.output_tokens(OUTPUT), COLORS)
-        # img = display_svg(ligation_tubes_svg, 0.7)
-        # vortex_and_centrifuge_helper(LIGATION_SAMPLE,
-        #                              op.output_refs(OUTPUT),
-        #                              VORTEX_TIME,
-        #                              CENTRIFUGE_TIME,
-        #                              "to mix well.",
-        #                              "to pull down liquid.",
-        #                              img)
       end
     end
   end
@@ -433,21 +399,11 @@ class Protocol
   def start_ligation(myops)
     gops = myops.group_by { |op| op.temporary[:input_kit_and_unit] }
     ops = gops.map { |_unit, ops| ops }.flatten # organize by unit
-    # show do
-    #   title "Place #{LIGATION_SAMPLE.pluralize(COMPONENTS.length)} into #{THERMOCYCLER}"
-    #   check "Place #{pluralizer(LIGATION_SAMPLE, ops.length * COMPONENTS.length)} (#{ops.length} #{"set".pluralize(ops.length)} of #{COMPONENTS.length})" \
-    #     " in the #{THERMOCYCLER}"
-    #   check "Close and tighten the lid."
-    #   ops.each do |op|
-    #     note display_svg(display_ligation_tubes(*op.output_tokens(OUTPUT), COLORS), 0.5)
-    #   end
-    # end
 
     add_to_thermocycler('sample', ops.length * COMPONENTS.length, LIG_CYCLE, ligation_cycle_table, 'Ligation')
 
     show do
       title 'Set a timer for 1 Hour'
-      #   check "Return to the #{PRE_PCR}."
       check 'Find a timer and set it for 1 Hour. Continue to next step.'
       note 'A Timer is available in the upper left corner of your screen.'
     end
@@ -496,7 +452,6 @@ class Protocol
       note "Discard #{DILUENT_L} into the #{WASTE_POST} in the #{AREA}"
 #      all_refs.each { |r| bullet r }
     end
-    # clean_area AREA
   end
 
   def conclusion(myops)
