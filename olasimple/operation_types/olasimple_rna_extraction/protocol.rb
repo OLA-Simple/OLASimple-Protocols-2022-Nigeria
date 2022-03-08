@@ -70,11 +70,12 @@ class Protocol
 
     fill_ethanol
 
-    prepare_buffers
+    prepare_lysis_buffers
     
     lyse_samples 
     remove_outer_layer
     incubate_lysed_samples(operations)
+    prepare_wash_buffers
     add_ethanol
 
     4.times do
@@ -393,9 +394,9 @@ class Protocol
     end
   end
 
-  def prepare_buffers
+  def prepare_lysis_buffers
     show do
-      title "Centrifuge #{DTT} and #{SA_WATER}"
+      title "Centrifuge #{DTT} and #{SA_WATER}" # E0 and E4
       check "Centrifuge <b>#{DTT}</b> and <b>#{SA_WATER}</b> for <b>5 seconds</b>."
     end
 
@@ -414,25 +415,27 @@ class Protocol
       to_svg: :E1_open,
       skip_centrifuge: true
     )
+  end # prepare_lysis_buffers
 
+   def prepare_wash_buffers
 #   prepare wash buffer 2 with ethanol
-    transfer_and_vortex(
-      "Prepare Buffers #{WASH1} and #{WASH2}",
-      ETHANOL,
-      WASH1,
-      680,
-      from_svg: :ethanol_container_open,
-      to_svg: :E3_open
-    )
+      transfer_and_vortex(
+        "Prepare Buffers #{WASH1} and #{WASH2}",
+        ETHANOL,
+        WASH1,
+        680,
+        from_svg: :ethanol_container_open,
+        to_svg: :E3_open
+      )
     
-    transfer_and_vortex(
-      "Prepare #{WASH2}",
-      ETHANOL,
-      WASH2,
-      840,
-      from_svg: :ethanol_container_open,
-      to_svg: :E3_open
-    )
+      transfer_and_vortex(
+        "Prepare #{WASH2}",
+        ETHANOL,
+        WASH2,
+        840,
+        from_svg: :ethanol_container_open,
+        to_svg: :E3_open
+      )
   end
 
   SAMPLE_VOLUME = 140 
