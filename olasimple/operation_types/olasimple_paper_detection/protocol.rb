@@ -319,7 +319,7 @@ class Protocol
             transfer_image = make_transfer(labeled_tube, ligation_tubes, 300, "#{STOP_TO_SAMPLE_VOLUME}uL", "(#{P20_POST} pipette)")
             note display_svg(transfer_image, 0.75)
             to_labels.each do |l|
-              check "Transfer #{STOP_TO_SAMPLE_VOLUME}uL from #{STOP_MIX.bold} into #{l.bold}"
+              check "Transfer #{STOP_TO_SAMPLE_VOLUME}uL from #{STOP_MIX.bold} into #{l.bold}. Discard tip, close cap."
             end
           end
         else
@@ -417,7 +417,7 @@ class Protocol
         show do
           title "From each corresponding tube (as seen above), add #{SAMPLE_TO_STRIP_VOLUME}uL of #{LIGATION_SAMPLE} to the corresponding sample port of each #{STRIP}."
           unless timer_set
-            warning '<h2>Complicated Step! Take note of all instructions before beginning transfers.</h2>'
+            note '<h2>Complicated Step! Take note of all instructions before beginning transfers.</h2>'
             note 'Set a 5 minute timer after adding the ligation sample to the <b>FIRST</b> strip at the SAMPLE PORT.'
             note '<b>Immediately</b> click OK when finished adding the ligation sample to the <b>LAST</b> strip at the sample port.' 
           end
