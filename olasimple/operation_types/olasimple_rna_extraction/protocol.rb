@@ -78,7 +78,7 @@ class Protocol
     prepare_wash_buffers
     add_ethanol
 
-    4.times do
+    2.times do
       operations.each { |op| add_sample_to_column(op) }
       centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}", speed: 8000)
     end
