@@ -32,7 +32,7 @@ module OLAConstants
   SAMPLE_PREP_UNIT = KIT_SELECTION["sample prep"]
   EXTRACTION_UNIT = KIT_SELECTION["extraction"]
   PCR_UNIT = KIT_SELECTION["pcr"]
-  RT_UNIT = KIT_SELECTION["rt"]
+  RT_UNIT = KIT_SELECTION["rt module"]
   LIGATION_UNIT = KIT_SELECTION["ligation"]
   DETECTION_UNIT = KIT_SELECTION["detection"]
   ANALYSIS_UNIT = KIT_SELECTION["analysis"]
@@ -52,7 +52,8 @@ module OLAConstants
   MUTATIONKEY = :mutations
 
   # kit components
-  DILUENT_A = "Diluent L0" # what to call the Diluent A tube (i.e. water)
+  DILUENT_A = "Diluent A" # what to call the Diluent A tube (i.e. water)
+  DILUENT_L = "Diluent L0" # what to call the Diluent L tube (i.e. water)
   STOP_MIX = "stop mix" # what to call the input samples (cell lysates)
   GOLD_MIX = "gold mix"
   STRIP = "detection strip"
@@ -75,7 +76,7 @@ module OLAConstants
   PCR_PKG_NAME = "PCR package"
   LIG_PKG_NAME = "ligation package"
   DET_PKG_NAME = "detection package"
-
+  RT_PKG_NAME = "rt module package"
   # names of sample field value and validate kit field types
   SAMPLE_PREP_FIELD_VALUE = "Sample Prep Pack"
   PCR_FIELD_VALUE = "PCR Pack"

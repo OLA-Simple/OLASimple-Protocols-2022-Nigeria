@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-
+# Updated version: March 16, 2022
 needs 'OLASimple/OLAConstants'
 needs 'OLASimple/OLALib'
 needs 'OLASimple/OLAGraphics'
@@ -42,16 +42,6 @@ class Protocol
   ETHANOL       = 'Molecular Grade Ethanol'
   GuSCN_WASTE = 'GuSCN waste container'
 
-  # KIT_SVGs = {
-  #   DTT => {closed_dry: E0_closed_dry}
-  #   LYSIS_BUFFER => :screwbottle,
-  #   SA_WATER => :tube,
-  #   WASH1 => :roundedtube,
-  #   WASH2 => :roundedtube,
-  #   SAMPLE_COLUMN => :samplecolumn,
-  #   RNA_EXTRACT => :tube
-  #   ETHANOL => {open: ethanol_container_open, closed: ethanol_container}
-  # }.freeze
 
   SHARED_COMPONENTS = [DTT, WASH1, WASH2, SA_WATER, ETHANOL, GuSCN_WASTE].freeze
   PER_SAMPLE_COMPONENTS = [LYSIS_BUFFER, SAMPLE_COLUMN, RNA_EXTRACT].freeze
@@ -80,14 +70,15 @@ class Protocol
 
     fill_ethanol
 
-    prepare_buffers
+    prepare_lysis_buffers
     
     lyse_samples 
     remove_outer_layer
     incubate_lysed_samples(operations)
+    prepare_wash_buffers
     add_ethanol
 
-    4.times do
+    2.times do
       operations.each { |op| add_sample_to_column(op) }
       centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}", speed: 8000)
     end
@@ -403,29 +394,17 @@ class Protocol
     end
   end
 
-  def prepare_buffers
+  def prepare_lysis_buffers
     show do
-      title "Centrifuge #{DTT} and #{SA_WATER}"
+      title "Centrifuge #{DTT} and #{SA_WATER}" # E0 and E4
       check "Centrifuge <b>#{DTT}</b> and <b>#{SA_WATER}</b> for <b>5 seconds</b>."
     end
 
-    # add sa water to dtt/trna
-#    transfer_and_vortex(
-#      "Prepare #{DTT}",
-#      SA_WATER,
-#      DTT,
-#      25,
-#      from_svg: :E4_open,
-#      to_svg: :E0_open_dry
-#    )
-
-    # add dtt solution to lysis buffer
-
     lysis_buffers = operations.map { |op| "#{LYSIS_BUFFER}-#{op.temporary[:output_sample]}" }
  
-    #   show do
- #     note 'Carrier RNA REHYDRATION STEP IS TO BE DONE BY TEAM PRIOR TO HAVING TECHS START'
- #   end 
+    show do
+      note 'Carrier RNA REHYDRATION STEP IS TO BE DONE BY TEAM PRIOR TO HAVING TECHS START'
+    end 
 
     transfer_and_vortex(
       "Prepare Lysis Buffers #{lysis_buffers.to_sentence}",
@@ -436,25 +415,27 @@ class Protocol
       to_svg: :E1_open,
       skip_centrifuge: true
     )
+  end # prepare_lysis_buffers
 
-#   prepare wash buffer 2 with ethanaol
-    transfer_and_vortex(
-      "Prepare Buffers #{WASH1} and #{WASH2}",
-      ETHANOL,
-      WASH1,
-      680,
-      from_svg: :ethanol_container_open,
-      to_svg: :E3_open
-    )
+   def prepare_wash_buffers
+#   prepare wash buffer 2 with ethanol
+      transfer_and_vortex(
+        "Prepare Buffers #{WASH1} and #{WASH2}",
+        ETHANOL,
+        WASH1,
+        680,
+        from_svg: :ethanol_container_open,
+        to_svg: :E3_open
+      )
     
-    transfer_and_vortex(
-      "Prepare #{WASH2}",
-      ETHANOL,
-      WASH2,
-      840,
-      from_svg: :ethanol_container_open,
-      to_svg: :E3_open
-    )
+      transfer_and_vortex(
+        "Prepare #{WASH2}",
+        ETHANOL,
+        WASH2,
+        840,
+        from_svg: :ethanol_container_open,
+        to_svg: :E3_open
+      )
   end
 
   SAMPLE_VOLUME = 140 
@@ -650,6 +631,7 @@ class Protocol
   def conclusion(_myops)
     show do
       title 'Thank you!'
+      note 'Press the OK button in the upper right hand corner to finish this protocol.'
       note 'You may start the next protocol immediately, or you may take a short break and come back.'
     end
   end

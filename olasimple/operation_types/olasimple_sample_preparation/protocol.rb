@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# Sample Preparation Updated March 16, 2022 
+#
 needs 'OLASimple/OLAConstants'
 needs 'OLASimple/OLAKitIDs'
 needs 'OLASimple/OLAGraphics'
@@ -25,7 +27,6 @@ class Protocol
   OUTPUT_COMPONENT = ''
   PLASMA_LOCATION = '-80 freezer'
   SAMPLE_VOLUME = 140 
-  #SAMPLE_VOLUME = 380
 
   def main
     operations.make
@@ -147,8 +148,6 @@ class Protocol
     show do
       title "Retrieve Package #{this_package.bold}"
       check "Take #{this_package} from the #{FRIDGE_PRE} and place inside the BSC with a Paper Towel"
-      # check 'Remove the <b>outside layer</b> of gloves (since you just touched the handle).'
-      # check 'Put on a new outside layer of gloves.'
     end
   end
 
@@ -243,6 +242,7 @@ class Protocol
   def conclusion(_myops)
     show do
       title 'Thank you!'
+      note 'Press the OK button in the Upper Right Corner to finish this Protocol.'
       note 'You will start the next protocol immediately.'
     end
   end

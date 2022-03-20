@@ -6,7 +6,7 @@
 # OLASimple PCR
 # author: Justin Vrana
 # date: March 2018
-#
+# updated version: March 16, 2022
 #
 ##########################################
 
@@ -42,15 +42,15 @@ class Protocol
   ##########################################
 
   PACK_HASH = PCR_UNIT
-  AREA = PRE_PCR
+  AREA = POST_PCR
   SAMPLE_VOLUME = 10 # volume of sample to add to PCR mix
   PCR_MIX_VOLUME = PACK_HASH['PCR Rehydration Volume'] # volume of water to rehydrate PCR mix in
   CENTRIFUGE_TIME = '5 seconds' # time to pulse centrifuge to pull down dried powder
   VORTEX_TIME = '5 seconds' # time to pulse vortex to mix
 
   # for debugging
-  PREV_COMPONENT = '6'
-  PREV_UNIT = 'E'
+#  PREV_COMPONENT = '6'
+  PREV_UNIT = 'RT'
 
   TUBE_CAP_WARNING = 'Check to make sure tube caps are completely closed.'
 
@@ -62,13 +62,13 @@ class Protocol
   MATERIALS = [
     'P200 pipette and filtered tips',
     'P20 pipette and filtered tips',
-    'a timer',
-    'gloves (wear tight gloves to reduce contamination risk)',
-    'post-PCR rack',
-    'a balancing tube (on rack)',
-    'waste bag',
-    'vortex',
-    'centrifuge'
+    'A timer',
+    'Gloves (wear tight gloves to reduce contamination risk)',
+    'Post-PCR rack',
+    'A balancing tube (on rack)',
+    'Waste bag',
+    'Vortex',
+    'Centrifuge'
   ].freeze
 
   SAMPLE_ALIAS = 'RT cDNA'
@@ -90,7 +90,7 @@ class Protocol
       kit_num = 'K001'
       operations.each.with_index do |op, i|
         op.input(INPUT).item.associate(SAMPLE_KEY, labels[i])
-        op.input(INPUT).item.associate(COMPONENT_KEY, PREV_COMPONENT)
+#        op.input(INPUT).item.associate(COMPONENT_KEY, PREV_COMPONENT)
         op.input(INPUT).item.associate(KIT_KEY, kit_num)
         op.input(INPUT).item.associate(UNIT_KEY, PREV_UNIT)
         op.input(INPUT).item.associate(PATIENT_KEY, "A PATIENT ID")        
@@ -98,9 +98,12 @@ class Protocol
     end
 
     save_temporary_input_values(operations, INPUT)
+    
     operations.each do |op|
       op.temporary[:pack_hash] = PACK_HASH
     end
+    
+    
     save_temporary_output_values(operations)
 
     run_checks(operations)
@@ -109,8 +112,10 @@ class Protocol
     safety_warning
     area_preparation('post-PCR', MATERIALS, PRE_PCR)
     simple_clean("OLASimple PCR")
+
     get_inputs(operations.running)
     validate_pcr_inputs(operations.running)
+    
     get_pcr_packages(operations.running)
     validate_pcr_packages(operations.running)
     open_pcr_packages(operations.running)
@@ -119,10 +124,12 @@ class Protocol
     # nuttada thaw
     # nuttada needs vortex + centrigure
     centrifuge_samples(sorted_ops.running)
+    
     resuspend_pcr_mix(sorted_ops.running)
+    
     add_template_to_master_mix(sorted_ops.running)
   
-    #cleanup(sorted_ops) Removed per Jordan's edits
+    cleanup(sorted_ops) # Removed per Jordan's edits
     start_thermocycler(sorted_ops.running)
     wash_self
     accept_comments
@@ -187,6 +194,7 @@ class Protocol
     end
   end
 
+  #make_tube(tube, bottom_label, middle_label, fluid = nil, cropped_for_closed_tube = false, fluidclass: nil)
   def validate_pcr_inputs(myops)
     expected_inputs = myops.map { |op| ref(op.input(INPUT).item) }
     sample_validation_with_multiple_tries(expected_inputs)
@@ -353,27 +361,37 @@ class Protocol
 
     vortex_and_centrifuge_helper(PCR_SAMPLE,
                                  sample_refs,
-                                 VORTEX_TIME, CENTRIFUGE_TIME,
-                                 'to mix.', 'to pull down liquid', AREA, mynote = nil)
-
+                                 "2 seconds, twice", CENTRIFUGE_TIME,
+                                 'to mix.', 'to pull down liquid', AREA, mynote = nil, vortex_type = "Pulse")
+    
     t = Table.new
-    cycles_temp = "<table style=\"width:100%\">
-                    <tr><td>95C</td></tr>
+    # temps and times for first 3 cycles
+    cycles_temp_initial = "<table style=\"width:100%\">
+                    <tr><td>94C</td></tr>
                     <tr><td>57C</td></tr>
-                    <tr><td>72C</td></tr>
+                    <tr><td>68C</td></tr>
+      </table>"
+    cycles_time_initial = "<table style=\"width:100%\">
+                           <tr><td>15 sec</td></tr>
+                           <tr><td>30 sec</td></tr>
+                           <tr><td>20 sec</td></tr>
+      </table>"
+    # temps and times for 42 cycles
+    cycles_temp = "<table style=\"width:100%\">
+                    <tr><td>94C</td></tr>
+                    <tr><td>68C</td></tr>
       </table>"
     cycles_time = "<table style=\"width:100%\">
-                    <tr><td>30 sec</td></tr>
-                    <tr><td>30 sec</td></tr>
-                    <tr><td>30 sec</td></tr>
+                           <tr><td>10 sec</td></tr>
+                           <tr><td>20 sec</td></tr>
       </table>"
-    t.add_column('STEP', ['Initial Melt', '45 cycles of', 'Extension', 'Hold'])
-    t.add_column('TEMP', ['95C', cycles_temp, '72C', '4C'])
-    t.add_column('TIME', ['4 min', cycles_time, '7 min', 'forever'])
+    t.add_column('STEP', ['Initial Melt', '3 cycles of', '42 cycles of', 'Extension', 'Hold'])
+    t.add_column('TEMP', ['94C', cycles_temp_initial, cycles_temp, '68C', '4C'])
+    t.add_column('TIME', ['2 min', cycles_time_initial, cycles_time, '4 min', 'forever'])
 
     show do
       title 'Run PCR'
-      check 'Close all the lids of the pipette tip boxes and pre-PCR rack'
+      check 'Close all the lids of the pipette tip boxes and post-PCR rack'
       check "Take only the PCR tubes (#{sample_refs.to_sentence}) with you"
       check 'Place the PCR tubes in the assigned thermocycler, close, and tighten the lid'
       check "Select the program named #{PCR_CYCLE} under OS"
@@ -407,7 +425,9 @@ class Protocol
   def conclusion(_myops)
     show do
       title 'Thank you!'
+      note 'Click OK to finish this protocol'
       note 'You may start the next protocol in 2 hours.'
     end
   end
 end # Class
+

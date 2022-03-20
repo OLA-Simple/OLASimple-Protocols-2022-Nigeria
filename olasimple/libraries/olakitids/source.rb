@@ -48,6 +48,7 @@ module OLAKitIDs
     resp = show do
       title 'Validate kit package'
       note "Scan in the ID of package #{this_package} which you've retrieved."
+      note "If the scanner isn't working and you have to enter the ID manually, type it in with no dashes. For example, type S003 and not S-003."
       default = AUTOFILL ? this_package : ''
       get 'text', var: :package, label: "Package ID", default: default
     end
@@ -81,6 +82,7 @@ module OLAKitIDs
       title 'Validate Incoming Samples'
 
       note "To ensure we are working with the right samples, scan in the IDs of the retrieved inputs #{show_ids.to_sentence}."
+      note "If the scanner isn't working and you have to enter the ID manually, type it in with no dashes. For example, type S003 and not S-003."
       expected_object_ids.size.times do |i|
         default = AUTOFILL ? expected_object_ids[i] : ''
         get 'text', var: i.to_s.to_sym, label: '', default: default
@@ -113,6 +115,7 @@ module OLAKitIDs
 
         check "In preparation for liquid transfer, set aside tubes #{show_ids.to_sentence}."
         note 'Scan in tube IDs for confirmation.'
+        note "If the scanner isn't working and you have to enter the ID manually, type it in with no dashes. For example, type S003 and not S-003."
       end
       note display_svg(img, 0.75)
       expected_object_ids.size.times do |i|

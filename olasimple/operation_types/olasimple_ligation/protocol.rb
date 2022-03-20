@@ -6,7 +6,7 @@
 # OLASimple Ligation
 # author: Justin Vrana
 # date: March 2018
-#
+# updated version: March 16, 2022
 #
 ##########################################
 
@@ -29,7 +29,7 @@ class Protocol
   INPUT = 'PCR Product'
   OUTPUT = 'Ligation Product'
   PACK = 'Ligation Pack'
-  A = 'Diluent A' #Update to be LO??
+  A = 'Diluent L0' #Update to be LO??
 
   ##########################################
   # TERMINOLOGY
@@ -230,11 +230,11 @@ class Protocol
 
   def centrifuge_samples(ops)
     labels = ops.map { |op| op.temporary[:label_string] }
-    diluentALabels = ops.map { |op| op.ref('diluent A') }.uniq
+    diluentL0Labels = ops.map { |op| op.ref('diluent L0') }.uniq
     show do
       title 'Centrifuge Diluent L0 and Ligation tubes for 5 seconds to pull down reagents'
       note 'Put the tag side of the rack toward the center of the centrifuge'
-      check "Centrifuge #{(labels + diluentALabels).to_sentence.bold} for 5 seconds."
+      check "Centrifuge #{(labels + diluentL0Labels).to_sentence.bold} for 5 seconds."
     end
     # centrifuge_helper("tube set", labels, CENTRIFUGE_TIME,
     #                   "to pull down dried powder.",
@@ -246,7 +246,7 @@ class Protocol
   def vortex_and_centrifuge_samples(ops)
     labels = ops.map { |op| op.temporary[:label_string] }
     vortex_and_centrifuge_helper('tube set', labels, CENTRIFUGE_TIME, VORTEX_TIME,
-                                 'to mix.', 'to pull down the fluid.', AREA)
+                                 'to mix.', 'to pull down the fluid.', AREA, vortex_type = 'Pulse')
     show do
       title 'Check your tubes.'
       note 'Dried powder of reagents should be dissolved at this point. '
@@ -278,15 +278,15 @@ class Protocol
           # All transfers at once...
           from = op.ref('diluent A')
           #tubeA = make_tube(opentube, [DILUENT_A, from], op.tube_label('diluent A'), 'medium')
-          tubeA = make_tube(opentube, [DILUENT_A], op.tube_label('diluent A'), 'medium')
+          tubeA = make_tube(opentube, [DILUENT_L], op.tube_label('diluent L0'), 'medium')
           show do
-            title "Add #{DILUENT_A} to #{LIGATION_SAMPLE}s #{op.temporary[:label_string].bold}"
+            title "Add #{DILUENT_L} to #{LIGATION_SAMPLE}s #{op.temporary[:label_string].bold}"
             labels.map! { |l| "<b>#{l}</b>" }
-            note "In this step we will be adding #{LIGATION_VOLUME}uL of #{DILUENT_A} into #{pluralizer('tube', COMPONENTS.length)} "
+            note "In this step we will be adding #{LIGATION_VOLUME}uL of #{DILUENT_L} into #{pluralizer('tube', COMPONENTS.length)} "
             "of the colored strip of tubes labeled <b>#{labels[0]} to #{labels[-1]}</b>"
             note "Set a #{P20_POST} pipette to [2 0 0]."
-            note "Using #{P20_POST} add #{LIGATION_VOLUME}uL from #{DILUENT_A} into each of the #{COMPONENTS.length} tubes."
-            warning "Only open one of the ligation tubes at a time and discard. Change your pipette tip after every transfer of #{DILUENT_A}."
+            note "Using #{P20_POST} add #{LIGATION_VOLUME}uL from #{DILUENT_L} into each of the #{COMPONENTS.length} tubes."
+            warning "Only open one of the ligation tubes at a time and discard. Change your pipette tip after every transfer of #{DILUENT_L}."
 
             ligation_tubes = display_ligation_tubes(*op.output_tokens(OUTPUT), COLORS).translate!(0, -20)
 
@@ -309,12 +309,12 @@ class Protocol
           ligation_tubes.align!('bottom-left')
           ligation_tubes.align_with(tube, 'bottom-right')
           ligation_tubes.translate!(50)
-          tubeA = make_tube(closedtube, DILUENT_A, op.tube_label('diluent A'), 'medium')
+          tubeA = make_tube(closedtube, DILUENT_L, op.tube_label('diluent L0'), 'medium')
           image = SVGElement.new(children: [tubeA, ligation_tubes], boundx: 1000, boundy: tube.boundy)
           image.translate!(50, -50)
           show do
-            title "Position #{DILUENT_A} #{from.bold} and colored tubes #{op.temporary[:label_string].bold} in front of you."
-            note "In the next steps you will dissolve the powder in #{pluralizer('tube', COMPONENTS.length)} using #{DILUENT_A}"
+            title "Position #{DILUENT_L} #{from.bold} and colored tubes #{op.temporary[:label_string].bold} in front of you."
+            note "In the next steps you will dissolve the powder in #{pluralizer('tube', COMPONENTS.length)} using #{DILUENT_L}"
             note display_svg(image, 0.75)
           end
           ligation_tubes_svg = display_ligation_tubes(*op.output_tokens(OUTPUT), COLORS).translate!(0, -20)
@@ -329,7 +329,7 @@ class Protocol
               note "Set a #{P200_POST} pipette to [0 2 4]."
               check "Add #{LIGATION_VOLUME}uL from #{from.bold} into tube #{label.bold}"
               note "Close tube #{label.bold}"
-              tubeA = make_tube(opentube, [DILUENT_A, from], '', 'medium')
+              tubeA = make_tube(opentube, [DILUENT_L, from], '', 'medium')
               transfer_image = transfer_to_ligation_tubes_with_highlight(
                 tubeA, i, *op.output_tokens(OUTPUT), COLORS, LIGATION_VOLUME, "(#{P200_POST} pipette)"
               )
@@ -337,32 +337,8 @@ class Protocol
             end
           end
         end
-        # vortex_and_centrifuge_helper(LIGATION_SAMPLE,
-        #                              op.temporary[:labels],
-        #                              VORTEX_TIME,
-        #                              CENTRIFUGE_TIME,
-        #                              "to mix well.",
-        #                              "to pull down liquid.",
-        #                              img)
-
-        # show do
-        #   title "Mix ligation tubes #{op.temporary[:labels][0]} through #{op.temporary[:labels][-1]}"
-        #   note display_svg(display_ligation_tubes(op.temporary[:input_kit], THIS_UNIT, COMPONENTS, op.temporary[:input_sample]), 0.5)
-        #   warning "Make sure tubes are firmly closed before proceeding."
-        #   check "Vortex #{pluralizer("tube", COMPONENTS.length)} for 5 seconds to mix well."
-        #   warning "Make sure all powder is dissolved. Vortex for 10 more seconds to dissolve powder."
-        #   check "Centrifuge #{pluralizer("tube", COMPONENTS.length)} for 5 seconds to pull down liquid."
-        #   check "Place tubes back into the rack."
-        # end
       end
     end
-
-    # vortex_and_centrifuge_helper("tube set",
-    #                              myops.map { |op| op.temporary[:label_string] },
-    #                              VORTEX_TIME,
-    #                              CENTRIFUGE_TIME,
-    #                              "to mix well.",
-    #                              "to pull down liquid.")
   end
 
   def add_template(myops, expert_mode)
@@ -387,7 +363,7 @@ class Protocol
             transfer_image = make_transfer(tubeP, ligation_tubes, 300, "#{SAMPLE_VOLUME}uL", "(Post-PCR P20 pipette)")
             note display_svg(transfer_image, 0.6)
             labels.each do |l|
-              check "Transfer #{SAMPLE_VOLUME}uL from #{from.bold} into #{l}"
+              check "Transfer #{SAMPLE_VOLUME}uL from #{from.bold} into #{l}. Discard tip, close cap."
             end
           end
         else
@@ -416,16 +392,6 @@ class Protocol
             end
           end
         end
-
-        # ligation_tubes_svg = display_ligation_tubes(*op.output_tokens(OUTPUT), COLORS)
-        # img = display_svg(ligation_tubes_svg, 0.7)
-        # vortex_and_centrifuge_helper(LIGATION_SAMPLE,
-        #                              op.output_refs(OUTPUT),
-        #                              VORTEX_TIME,
-        #                              CENTRIFUGE_TIME,
-        #                              "to mix well.",
-        #                              "to pull down liquid.",
-        #                              img)
       end
     end
   end
@@ -433,21 +399,11 @@ class Protocol
   def start_ligation(myops)
     gops = myops.group_by { |op| op.temporary[:input_kit_and_unit] }
     ops = gops.map { |_unit, ops| ops }.flatten # organize by unit
-    # show do
-    #   title "Place #{LIGATION_SAMPLE.pluralize(COMPONENTS.length)} into #{THERMOCYCLER}"
-    #   check "Place #{pluralizer(LIGATION_SAMPLE, ops.length * COMPONENTS.length)} (#{ops.length} #{"set".pluralize(ops.length)} of #{COMPONENTS.length})" \
-    #     " in the #{THERMOCYCLER}"
-    #   check "Close and tighten the lid."
-    #   ops.each do |op|
-    #     note display_svg(display_ligation_tubes(*op.output_tokens(OUTPUT), COLORS), 0.5)
-    #   end
-    # end
 
     add_to_thermocycler('sample', ops.length * COMPONENTS.length, LIG_CYCLE, ligation_cycle_table, 'Ligation')
 
     show do
       title 'Set a timer for 1 Hour'
-      #   check "Return to the #{PRE_PCR}."
       check 'Find a timer and set it for 1 Hour. Continue to next step.'
       note 'A Timer is available in the upper left corner of your screen.'
     end
@@ -493,10 +449,9 @@ class Protocol
     show do
       title "Discard items into the #{WASTE_POST}"
 
-      note "Discard #{DILUENT_A} into the #{WASTE_POST} in the #{AREA}"
+      note "Discard #{DILUENT_L} into the #{WASTE_POST} in the #{AREA}"
 #      all_refs.each { |r| bullet r }
     end
-    # clean_area AREA
   end
 
   def conclusion(myops)

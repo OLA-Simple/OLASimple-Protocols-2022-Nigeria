@@ -8,6 +8,12 @@ module OLAKits
                 "sample tube" => ""
             }
         },
+        "rt module" => {
+            "Unit Name" => "RT",
+            "Components" => {
+                "sample tube" => ""
+            }
+        },
         "extraction" => {
             "Unit Name" => "E",
             "Components" => {
