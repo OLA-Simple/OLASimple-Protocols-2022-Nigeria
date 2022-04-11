@@ -6,7 +6,7 @@
 # OLASimple PCR
 # author: Justin Vrana
 # date: March 2018
-# updated version: March 16, 2022
+# updated version: March 28, 2022
 #
 ##########################################
 
@@ -246,6 +246,7 @@ class Protocol
 
         check "Look for #{num_samples + 1} #{'tube'.pluralize(num_samples)}"
         check 'Place tubes on a rack'
+        check "Label 'A2001' and 'A2002' on side and lid of corresponding tubes." 
         note display_svg(img, 0.75)
       end
     end
@@ -365,29 +366,44 @@ class Protocol
                                  'to mix.', 'to pull down liquid', AREA, mynote = nil, vortex_type = "Pulse")
     
     t = Table.new
+    #
+    initial_steps =  "<table style=\"width:100%\">
+                   <tr><td>Denaturation</td></tr>
+                   <tr><td>Annealing</td></tr>
+                   <tr><td>Extension</td></tr>
+                    </table>"
+
+    steps = "<table style=\"width:100%\">
+             <tr><td>Denaturation</td></tr>
+             <tr><td>Annealing/Extension</td></tr>
+            </table>"
+
+    initial_temps =  "<table style=\"width:100%\">
+                   <tr><td>94C</td></tr>
+                   <tr><td>57C</td></tr>
+                   <tr><td>68C</td></tr>
+                    </table>"
+
+    temps =  "<table style=\"width:100%\">
+                   <tr><td>94C</td></tr>
+                   <tr><td>68C</td></tr>
+                    </table>"
+
+    initial_times =  "<table style=\"width:100%\">
+                   <tr><td>15 seconds</td></tr>
+                   <tr><td>30 seconds</td></tr>
+                   <tr><td>20 seconds</td></tr>
+                    </table>"
+
+    times =  "<table style=\"width:100%\">
+                   <tr><td>10 seconds</td></tr>
+                   <tr><td>20 seconds</td></tr>
+                    </table>"
     # temps and times for first 3 cycles
-    cycles_temp_initial = "<table style=\"width:100%\">
-                    <tr><td>94C</td></tr>
-                    <tr><td>57C</td></tr>
-                    <tr><td>68C</td></tr>
-      </table>"
-    cycles_time_initial = "<table style=\"width:100%\">
-                           <tr><td>15 sec</td></tr>
-                           <tr><td>30 sec</td></tr>
-                           <tr><td>20 sec</td></tr>
-      </table>"
-    # temps and times for 42 cycles
-    cycles_temp = "<table style=\"width:100%\">
-                    <tr><td>94C</td></tr>
-                    <tr><td>68C</td></tr>
-      </table>"
-    cycles_time = "<table style=\"width:100%\">
-                           <tr><td>10 sec</td></tr>
-                           <tr><td>20 sec</td></tr>
-      </table>"
-    t.add_column('STEP', ['Initial Melt', '3 cycles of', '42 cycles of', 'Extension', 'Hold'])
-    t.add_column('TEMP', ['94C', cycles_temp_initial, cycles_temp, '68C', '4C'])
-    t.add_column('TIME', ['2 min', cycles_time_initial, cycles_time, '4 min', 'forever'])
+    t.add_column('STEP', ['Initial Denaturation', initial_steps, steps, 'Final Extension', 'Hold'])
+    t.add_column('TEMP', ['94C', initial_temps, temps, '68C', '4C'])
+    t.add_column('TIME', ['2 min', initial_times, times, '4 min', 'indefinite'])
+    t.add_column('CYCLES', ['1 cycle', '3 cycles', '42 cycles', '1 cycle', '1 cycle'])
 
     show do
       title 'Run PCR'

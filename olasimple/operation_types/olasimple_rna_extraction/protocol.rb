@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-# Updated version: March 16, 2022
+# Updated version: March 26, 2022
 needs 'OLASimple/OLAConstants'
 needs 'OLASimple/OLALib'
 needs 'OLASimple/OLAGraphics'
@@ -90,12 +90,19 @@ class Protocol
     change_collection_tubes
 
     add_wash_2
-    centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}", speed: 14000)
+    centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}", speed: "at least 13000")
 
-    transfer_column_to_e6
-    elute
+    2.times do
+      change_collection_tubes # Added March 22 (55)
+      centrifuge_columns(flow_instructions: '<b>DO NOT DISCARD FLOW THROUGH</b>', extra_warning: 'DO NOT DISCARD FLOW THROUGH', speed: 14000)
+    end
+
+    transfer_column_to_e6 # 53
+    elute # 54
+
     incubate(sample_labels.map { |s| "#{SAMPLE_COLUMN}-#{s}" }, '1 minute')
-    centrifuge_columns(flow_instructions: '<b>DO NOT DISCARD FLOW THROUGH</b>', extra_warning: 'DO NOT DISCARD FLOW THROUGH')
+
+    centrifuge_columns(flow_instructions: '<b>DO NOT DISCARD FLOW THROUGH</b>', extra_warning: 'DO NOT DISCARD FLOW THROUGH', speed: "at least 13000")
 
     finish_up
     disinfect
@@ -171,7 +178,7 @@ class Protocol
 
     show do
       title 'Required Reagent (not provided)'
-      check 'Before starting this protocol, make sure you have access to molecular grade ethanol (~10 mL, 200 proof).'
+      check 'Before starting this protocol, make sure you have access to molecular grade ethanol (5 mL, 200 proof).'
       note 'Do not use other grades of ethanol as this will negatively affect the RNA extraction yield.'
       note 'Soon, using a serological pipette, you will transfer 4ml of the molecular grade ethanol to the provided ethanol container in the kit.'
       note display_ethanol_question_svg
@@ -195,7 +202,7 @@ class Protocol
         'P1000 pipette and filter tips',
         'P200 pipette and filter tips',
         'P20 pipette and filter tips',
-        'gloves',
+        'Gloves',
         'Pipette controller and 10mL serological pipette',
         'Vortex mixer',
         'Centrifuge',
@@ -229,7 +236,7 @@ class Protocol
   def kit_image
     grid = SVGGrid.new(PER_SAMPLE_COMPONENTS.size + SHARED_COMPONENTS.size + 1, operations.size, 80, 100)
     initial_kit_components = {
-      DTT => :E0_closed_dry,
+      DTT => :E6_closed, #changed from E0_closed_dry to remove bead
       LYSIS_BUFFER => :E1_closed,
       SA_WATER => :E4_closed,
       WASH1 => :E2_closed,
@@ -291,7 +298,7 @@ class Protocol
   end
 
   # helper method for simple transfers in this protocol
-  def transfer_and_vortex(title, from, to, volume_ul, warning: nil, to_svg: nil, from_svg: nil, skip_centrifuge: false, extra_check: nil)
+  def transfer_and_vortex(title, from, to, volume_ul, warning: nil, to_svg: nil, from_svg: nil, skip_vortex: false, skip_centrifuge: false, extra_check: nil, vortex_note: nil, centrifuge_note: nil)
 
     pipette, extra_note, setting_instruction = pipette_decision(volume_ul)
    # pipette, extra_note, setting_instruction = "P20", nil, "Set P20 pipette to [0 5 6]"  
@@ -319,8 +326,10 @@ class Protocol
         warning warning if warning
         note display_svg(img, 0.75) if img
         check "Ensure tube caps are tightly shut for #{to.to_sentence}."
-        check "Vortex <b>#{to.to_sentence}</b> for <b>2 seconds, twice</b>."
+        check "Vortex <b>#{to.to_sentence}</b> for <b>2 seconds, twice</b>." unless skip_vortex
         check "Centrifuge <b>#{to.to_sentence}</b> for <b>5 seconds</b>." unless skip_centrifuge
+        check vortex_note
+        check centrifuge_note
       end
     else # SINGLE TRANSFER
       from_component, from_sample_num = from.split('-')
@@ -343,8 +352,10 @@ class Protocol
         check "Discard pipette tip into #{WASTE_PRE}."
         check extra_check if extra_check
         check "Ensure tube cap is tightly shut for #{to}."
-        check "Vortex <b>#{to}</b> for <b>2 seconds, twice</b>."
+        check "Vortex <b>#{to}</b> for <b>2 seconds, twice</b>." unless skip_vortex
         check "Centrifuge <b>#{to}</b> for <b>5 seconds</b>." unless skip_centrifuge
+        check vortex_note
+        check centrifuge_note
       end
     end
   end
@@ -352,13 +363,13 @@ class Protocol
   def pipette_decision(volume_ul)
     if volume_ul <= 20
       setting = '[ ' + (volume_ul * 10).round.to_s.rjust(3, '0').split('').join(' ') + ' ]'
-      [P20_PRE, nil, "Set P20 pipette to <b>#{setting}</b>"]
+      [P20_PRE, nil, "Set P20 pipette to <b>#{volume_ul} uL</b>"]
     elsif volume_ul <= 200
       setting = '[ ' + volume_ul.round.to_s.rjust(3, '0').split('').join(' ') + ' ]'
-      [P200_PRE, nil, "Set p200 pipette to <b>#{setting}</b>"]
+      [P200_PRE, nil, "Set p200 pipette to <b>#{volume_ul} uL</b>"]
     elsif volume_ul <= 1000
       setting = '[ ' + (volume_ul / 10).round.to_s.rjust(3, '0').split('').join(' ') + ' ]'
-      [P1000_PRE, nil, "Set p1000 pipette to <b>#{setting}</b>"]
+      [P1000_PRE, nil, "Set p1000 pipette to <b>#{volume_ul} uL</b>"]
     else
       factor = volume_ul.fdiv(1000).ceil
       split_volume = volume_ul.fdiv(factor)
@@ -370,11 +381,10 @@ class Protocol
   # helper method for simple incubations
   def incubate(samples, time)
     show do
-      title 'Incubate Sample Lysis Solutions'
+      title 'Incubate E6 Tubes to ensure full RNA recovery.'
       note "Let <b>#{samples.to_sentence}</b> incubate for <b>#{time}</b> at room temperature."
       check "Set a timer for <b>#{time}</b>"
       note 'Do not proceed until time has elapsed.'
-      note '<iframe width="560" height="315" src="https://www.youtube.com/embed/zdl52lDRH1U" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>' 
     end
   end
 
@@ -396,16 +406,14 @@ class Protocol
 
   def prepare_lysis_buffers
     show do
-      title "Centrifuge #{DTT} and #{SA_WATER}" # E0 and E4
+      title "Centrifuge the following:" # E0 and E4
       check "Centrifuge <b>#{DTT}</b> and <b>#{SA_WATER}</b> for <b>5 seconds</b>."
+      check "Centrifuge <b>E1-001</b> and <b>E1-002</b> for 5 seconds"
+      check "Centrifuge <b>#{WASH2}</b> and <b>#{SA_WATER}</b> for <b>5 seconds</b>." #E3 and E4
     end
 
     lysis_buffers = operations.map { |op| "#{LYSIS_BUFFER}-#{op.temporary[:output_sample]}" }
  
-    show do
-      note 'Carrier RNA REHYDRATION STEP IS TO BE DONE BY TEAM PRIOR TO HAVING TECHS START'
-    end 
-
     transfer_and_vortex(
       "Prepare Lysis Buffers #{lysis_buffers.to_sentence}",
       DTT, #E0
@@ -420,21 +428,27 @@ class Protocol
    def prepare_wash_buffers
 #   prepare wash buffer 2 with ethanol
       transfer_and_vortex(
-        "Prepare Buffers #{WASH1} and #{WASH2}",
+        "Prepare Buffers #{WASH1} and #{WASH2}", # E2 and E3
         ETHANOL,
-        WASH1,
+        WASH1, # E2
         680,
         from_svg: :ethanol_container_open,
-        to_svg: :E3_open
+        to_svg: :E3_open,
+        skip_vortex: true,
+        skip_centrifuge: true
       )
     
       transfer_and_vortex(
-        "Prepare #{WASH2}",
+        "Prepare #{WASH2}", # E3
         ETHANOL,
         WASH2,
         840,
         from_svg: :ethanol_container_open,
-        to_svg: :E3_open
+        to_svg: :E3_open,
+        skip_vortex: true,
+        skip_centrifuge: true,
+        vortex_note: "Vortex <b>#{WASH1}</b> and <b>#{WASH2}</b> for 2 seconds, twice",
+        centrifuge_note: "Centrifuge <b>#{WASH1}</b> and <b>#{WASH2}</b> for 5 seconds"
       )
   end
 
@@ -504,14 +518,14 @@ class Protocol
     end
   end
 
-  def add_wash_1
+  def add_wash_1 #E2
     columns = operations.map { |op| column = "#{SAMPLE_COLUMN}-#{op.temporary[:output_sample]}" }
-    transfer_carefully(WASH1, columns, 500, from_type: 'Wash Buffer', to_type: 'column', from_svg: :E2_open, to_svg: :E5_full_open_w_empty_collector)
+    transfer_carefully(WASH1, columns, 500, from_type: 'Wash Buffer E2', to_type: 'column', from_svg: :E2_open, to_svg: :E5_full_open_w_empty_collector)
   end
 
-  def add_wash_2
+  def add_wash_2 #E3
     columns = operations.map { |op| column = "#{SAMPLE_COLUMN}-#{op.temporary[:output_sample]}" }
-    transfer_carefully(WASH2, columns, 500, from_type: 'Wash Buffer', to_type: 'column', from_svg: :E3_open, to_svg: :E5_full_open_w_empty_collector)
+    transfer_carefully(WASH2, columns, 500, from_type: 'Wash Buffer E3', to_type: 'column', from_svg: :E3_open, to_svg: :E5_full_open_w_empty_collector)
   end
 
   def transfer_carefully(from, to, volume_ul, from_type:, to_type:, from_svg: nil, to_svg: nil)
@@ -562,7 +576,7 @@ class Protocol
 
   def transfer_column_to_e6
     show do
-      title 'Transfer Columns'
+      title 'Transfer E5 Columns to E6 Clean Tubes'
       warning 'Make sure the bottom of the E5 columns did not touch any fluid from the previous collection tubes. When in doubt, centrifuge the tube for 1 more minute.'
       note display_pre_elution_warning
       operations.each do |op|
@@ -581,7 +595,7 @@ class Protocol
       columns = operations.map { |op| column = "#{SAMPLE_COLUMN}-#{op.temporary[:output_sample]}" }
       note display_elution_addition
       columns.each do |column|
-        check "Add <b>60uL</b> from <b>#{SA_WATER}</b> to column <b>#{column}</b>"
+        check "Add <b>50uL</b> from <b>#{SA_WATER}</b> to column <b>#{column}</b>"
       end
       check 'Close lid on column tightly.'
     end
@@ -606,7 +620,7 @@ class Protocol
       title 'Store Items'
       extract_tubes = sample_labels.map { |s| "#{RNA_EXTRACT}-#{s}" }
       note "Store <b>#{extract_tubes.to_sentence}</b> in the fridge on a cold rack if the amplification module will proceed immediately."
-      note "Store <b>#{extract_tubes.to_sentence}</b> in -20C freezer if proceeding with the amplification module later."
+      note "Store <b>#{extract_tubes.to_sentence}</b> in -80C freezer if proceeding with the amplification module later."
     end
   end
 

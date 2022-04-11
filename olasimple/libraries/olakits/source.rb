@@ -31,7 +31,7 @@ module OLAKits
             "Unit Name" => "A",
             "Components" => {
                 "sample tube" => "2",
-                "diluent A" => "1"
+                "diluent A" => "0"
             },
             "PCR Rehydration Volume" => 40,
             "Number of Samples" => 2,

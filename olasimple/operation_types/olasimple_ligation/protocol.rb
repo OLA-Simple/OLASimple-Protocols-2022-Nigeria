@@ -6,7 +6,7 @@
 # OLASimple Ligation
 # author: Justin Vrana
 # date: March 2018
-# updated version: March 16, 2022
+# updated version: March 20, 2022
 #
 ##########################################
 
@@ -59,7 +59,7 @@ class Protocol
     'A spray bottle of 10% v/v bleach',
     'A spray bottle of 70% v/v ethanol',
     'Balancing tube (on rack)',
-    'Centrifuge',
+    'Mini-Centrifuge',
     'Vortex mixer'
   ].freeze
   COMPONENTS = PACK_HASH['Components']['sample tubes']
@@ -411,6 +411,10 @@ class Protocol
 
   def ligation_cycle_table
     t = Table.new
+    cycles_steps = "<table style=\"width:100%\">
+                        <tr><td>Denaturation</td></tr>
+                        <tr><td>Ligation</td></tr>
+          </table>"
     cycles_temp = "<table style=\"width:100%\">
                         <tr><td>94</td></tr>
                         <tr><td>37C</td></tr>
@@ -420,8 +424,11 @@ class Protocol
                         <tr><td>4 min</td></tr>
           </table>"
     # t.add_column("STEP", ["Initial Melt", "10 cycles of", "Hold"])
-    t.add_column('TEMP', ['95C', cycles_temp, '4C'])
-    t.add_column('TIME', ['4 min', cycles_time, 'forever'])
+    t.add_column('STEP', [cycles_steps, 'Hold'] )
+    t.add_column('TEMP', [cycles_temp, '4C'])
+    t.add_column('TIME', [cycles_time, 'Infinity'])
+    t.add_column('Cycles', ['10 Cycles', ''])
+
     t
   end
 

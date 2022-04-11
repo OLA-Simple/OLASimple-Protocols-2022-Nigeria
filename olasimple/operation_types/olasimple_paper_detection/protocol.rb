@@ -6,7 +6,7 @@
 # OLASimple Detection
 # author: Justin Vrana
 # date: March 2018
-# updated version: March 16, 2022
+# updated version: March 28, 2022
 #
 ##########################################
 
@@ -395,11 +395,6 @@ class Protocol
         sample = op.temporary[:output_sample]
         panel_unit = op.temporary[:output_unit]
         tube_unit = op.temporary[:input_unit]
-        # show do
-        #   title "Arrange #{STRIPS} and tubes" # for sample 1?
-        #   note "Place the detection #{STRIPS} and #{LIGATION_SAMPLE.pluralize(PREV_COMPONENTS.length)} as shown in the picture:"
-        #   note display_svg(display_panel_and_tubes(kit, panel_unit, tube_unit, PREV_COMPONENTS, sample, COLORS).translate!(50), 0.6)
-        # end
 
         # Validate samples
         from_name = "#{op.temporary[:input_unit]}-#{op.temporary[:input_sample]}"
@@ -409,7 +404,7 @@ class Protocol
           # CONFIRM THIS WITH JORDAN
           title "Arrange #{STRIPS} and tubes for sample #{op.temporary[:input_sample]}" # for sample 1?
           note "Place the #{STRIPS} #{to_name} and #{LIGATION_SAMPLE.pluralize(PREV_COMPONENTS.length)} #{from_name} as shown in the picture:"
-          note 'Scan in IDS of objects for confirmation.'
+          note "Scan in #{to_name} and #{from_name}"
         end
         content = ShowBlock.new(self).run(&p)
         pre_transfer_validation_with_multiple_tries(from_name, to_name, svg_both, content_override: content)
@@ -645,9 +640,15 @@ class Protocol
       "R": 'detection failure'
     }
 
-    run_image_analysis ops.running, band_choices, categories
-    show_calls ops.running, band_choices
-    show_summary ops.running
+    begin
+      run_image_analysis ops.running, band_choices, categories
+      show_calls ops.running, band_choices
+      show_summary ops.running
+    rescue
+      show do
+        note "Processing Failed. Be sure to save image for processing later."
+      end
+    end
   end
 
   def run_image_analysis(ops, _band_choices, category_hash)

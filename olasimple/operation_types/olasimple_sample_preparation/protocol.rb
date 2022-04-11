@@ -225,7 +225,7 @@ class Protocol
       title 'Store Items'
       sample_tubes = sample_labels.map { |s| "#{UNIT}-#{s}" }
       _, plasma_tube_names = plasma_tubes(ops)
-      check "Return #{plasma_tube_names.to_sentence} to #{PLASMA_LOCATION}."
+      check "If you won't be moving to the next step until tomorrow, return #{plasma_tube_names.to_sentence} to #{PLASMA_LOCATION}."
       note "Leave <b>#{sample_tubes.to_sentence}</b> in the BSC for immediate continuation."
     end
   end
