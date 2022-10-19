@@ -110,6 +110,8 @@ class Protocol
     add_ligation_product_to_strips(sorted_ops.running)
     add_gold_solution(sorted_ops.running)
     read_from_scanner(sorted_ops.running)
+
+# Visual Call 
     analysis operations.running
 
     discard_things(sorted_ops.running)
@@ -162,6 +164,26 @@ class Protocol
             'You will then scan an image of the strips and upload the image. The strips will detect whether the sample has drug resistance mutations.'
     end
   end
+
+  def visual_call_instructions myops
+    show do
+      note "Now you will look at and evaluate images of the detection strips."
+      note "Each strip may have three bands:"
+      bullet "Top band corresponds to a flow control (C)"
+      bullet "Middle band corresponds to the wild-type genotype at that codon (W)"
+      bullet "Bottom band corresponds to the mutant genotype at that codon (M)"
+      note "You will be asked to compare your detection trips to some images on the screen"
+      note "Click \"OK\" in the upper right to continue."
+    end
+    show do
+      title "You will be making visual calls on these #{"scanned images".quote.bold}"
+      warning "Do not make calls based on your actual strips because:"
+      note "1) The assay is time-sensitive; a false signal can develop over time on the actual strips after you scan the strips."
+      note "2) Doctors will confirm your visual calls based on the scanned images, not the actual strips."
+    end
+  end
+
+
 
   def get_detection_packages(myops)
     gops = group_packages(myops)
