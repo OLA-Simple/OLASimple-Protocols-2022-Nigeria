@@ -30,9 +30,9 @@ class Protocol
   INPUT = 'Ligation Product'
   OUTPUT = 'Detection Strip'
   PACK = 'Detection Pack'
-  A = 'Diluent A'
-  G = 'Gold Mix'
-  S = 'Stop Mix'
+  #A = 'Diluent A' #These don't seem to be used ever?
+  #G = 'Gold Mix'
+  #S = 'Stop Mix'
 
   ###########################################
   ## TERMINOLOGY
@@ -42,18 +42,22 @@ class Protocol
   ## Protocol Specifics
   ###########################################
   AREA = POST_PCR
-  NUM_SUB_PACKAGES = 4
 
   CENTRIFUGE_TIME = '5 seconds' # time to pulse centrifuge to pull down dried powder
   VORTEX_TIME = '5 seconds' # time to pulse vortex to mix
   TUBE_CAP_WARNING = 'Check to make sure tube caps are completely closed.'
+
   PACK_HASH = DETECTION_UNIT
   THIS_UNIT = PACK_HASH['Unit Name']
+
+  #NUM_SUB_PACKAGES = 4
+  NUM_SUB_PACKAGES = PACK_HASH['Number of Sub Packages'] 
   STOP_VOLUME = PACK_HASH['Stop Rehydration Volume']
   GOLD_VOLUME = PACK_HASH['Gold Rehydration Volume']
   STOP_TO_SAMPLE_VOLUME = PACK_HASH['Stop to Sample Volume'] # volume of competitive oligos to add to sample
   SAMPLE_TO_STRIP_VOLUME = PACK_HASH['Sample to Strip Volume'] # volume of sample to add to the strips
   GOLD_TO_STRIP_VOLUME = PACK_HASH['Gold to Strip Volume']
+
   PREV_COMPONENTS = PACK_HASH['Components']['strips']
   MUTATION_LABELS = PACK_HASH['Mutation Labels']
 
@@ -89,7 +93,8 @@ class Protocol
     save_temporary_input_values(operations, INPUT)
     save_temporary_output_values(operations)
     expert_mode = true
-    introduction operations.running
+
+    introduction #operations.running
     record_technician_id
     safety_warning
     area_preparation POST_PCR, MATERIALS, PRE_PCR
@@ -112,7 +117,8 @@ class Protocol
     read_from_scanner(sorted_ops.running)
 
 # Visual Call 
-    analysis operations.running
+    visual_call_instructions
+    #analysis operations.running
 
     discard_things(sorted_ops.running)
     clean_area(AREA)
@@ -157,7 +163,8 @@ class Protocol
     end
   end
 
-  def introduction(_myops)
+  #def introduction(_myops)
+  def introduction
     show do
       title 'Welcome to OLASimple Paper Detection procotol'
       note 'In this protocol you will be adding samples from the ligation protocol onto paper detection strips. ' \
@@ -165,7 +172,8 @@ class Protocol
     end
   end
 
-  def visual_call_instructions myops
+  #def visual_call_instructions myops
+  def visual_call_instructions
     show do
       note "Now you will look at and evaluate images of the detection strips."
       note "Each strip may have three bands:"
