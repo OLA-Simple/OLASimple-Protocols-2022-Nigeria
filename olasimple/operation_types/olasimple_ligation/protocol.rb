@@ -29,7 +29,7 @@ class Protocol
   INPUT = 'PCR Product'
   OUTPUT = 'Ligation Product'
   PACK = 'Ligation Pack'
-  A = 'Diluent L0' #Update to be LO??
+  # A = 'Diluent L0' #Update to be LO?? Not used
 
   ##########################################
   # TERMINOLOGY
@@ -47,7 +47,7 @@ class Protocol
 
   CENTRIFUGE_TIME = '5 seconds' # time to pulse centrifuge to pull down dried powder
   VORTEX_TIME = '5 seconds' # time to pulse vortex to mix
-  TUBE_CAP_WARNING = 'Check to make sure tube caps are completely closed.'
+  #TUBE_CAP_WARNING = 'Check to make sure tube caps are completely closed.'
 
   PACK_HASH = LIGATION_UNIT
 
@@ -214,10 +214,6 @@ class Protocol
         img = SVGElement.new(children: [tube, grid], boundx: 1000, boundy: 300).translate!(30, -50)
         note 'Check that the following tubes are in the pack:'
         note 'Colored tubes in the photo will not match the color of the tubes in the package. Refer to the sticker and barcode attached to each tube to confirm which sample it is.'
-        # check "a 1.5mL tube of #{DILUENT_A} labeled #{ops.first.ref("diluent A")}"
-        # ops.each do |op|
-        #   check "a strip of colored tubes labeled #{op.temporary[:label_string].bold}"
-        # end
         note display_svg(img, 0.75)
       end
 
@@ -236,11 +232,6 @@ class Protocol
       note 'Put the tag side of the rack toward the center of the centrifuge'
       check "Centrifuge #{(labels + diluentL0Labels).to_sentence.bold} for 5 seconds."
     end
-    # centrifuge_helper("tube set", labels, CENTRIFUGE_TIME,
-    #                   "to pull down dried powder.",
-    #                   "There may be dried powder on the inside of the tube #{"lid".pluralize(labels.length)}.")
-    # centrifuge_helper("tube", diluentALabels, CENTRIFUGE_TIME,
-    #                   "to pull down liquid.")
   end
 
   def vortex_and_centrifuge_samples(ops)
@@ -277,7 +268,6 @@ class Protocol
         if expert_mode
           # All transfers at once...
           from = op.ref('diluent A')
-          #tubeA = make_tube(opentube, [DILUENT_A, from], op.tube_label('diluent A'), 'medium')
           tubeA = make_tube(opentube, [DILUENT_L], op.tube_label('diluent L0'), 'medium')
           show do
             title "Add #{DILUENT_L} to #{LIGATION_SAMPLE}s #{op.temporary[:label_string].bold}"
@@ -296,11 +286,6 @@ class Protocol
             labels.each do |l|
               check "Transfer #{LIGATION_VOLUME}uL from #{from.bold} into #{l}. Discard tip, close cap."
             end
-
-            # t = Table.new
-            # t.add_column("Tube", labels)
-            # t.add_column("Color", COMPONENTS_COLOR_CODE)
-            # table t
           end
         else
           # each transfer
@@ -319,7 +304,6 @@ class Protocol
           end
           ligation_tubes_svg = display_ligation_tubes(*op.output_tokens(OUTPUT), COLORS).translate!(0, -20)
           img = display_svg(ligation_tubes_svg, 0.7)
-          # centrifuge_helper(LIGATION_SAMPLE, op.temporary[:labels], CENTRIFUGE_TIME, "to pull down dried powder.", img)
 
           labels.each.with_index do |label, i|
             show do
