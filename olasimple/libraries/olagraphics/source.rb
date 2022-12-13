@@ -19,6 +19,46 @@ module OLAGraphics
     <<EOF
       /* <![CDATA[ */
       
+      #svg .blue1 path {
+          fill: #2020ef;
+      }
+      
+      #svg .blue2 path {
+          fill: #4141ce;
+      }
+
+      #svg .blue3 path {
+          fill: #5757ea;
+      }
+
+      #svg .blue4 path {
+          fill: #8f8ff7;
+      }
+      
+      #svg .blue5 path {
+          fill: #c7c7f2;
+      }
+
+      #svg .pink1 path {
+          fill: #c40a20;
+      }
+
+      #svg .pink2 path {
+          fill: #b55072;
+      }
+
+      #svg .pink3 path {
+          fill: #aa718d;
+      }
+
+      #svg .pink4 path {
+          fill: #e5a8be;
+      }
+ 
+      #svg .pink5 path {
+          fill: #fcedfa;
+      }
+
       #svg .yellow path {
           fill: #f7f9c2;
       }
