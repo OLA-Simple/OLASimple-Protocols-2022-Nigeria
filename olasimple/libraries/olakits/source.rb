@@ -48,14 +48,19 @@ module OLAKits
                     "4",
                     "5",
                     "6",
-                    "7"
+                    "7",
+                    "8",
+                    "9",
+                    "10"
                 ],
-                "diluent A" => "0"
+                "diluent A" => "0",
+                "tubes_blue" => ["blue1", "blue2","blue3", "blue4", "blue5", "blue5", "blue4", "blue3", "blue2", "blue1"],
+                "tubes_pink" => ["pink1", "pink2","pink3", "pink4", "pink5", "pink5", "pink4", "pink3", "pink2", "pink1"]
             },
             "PCR to Ligation Mix Volume" => 4,
             "Ligation Mix Rehydration Volume" => 20,
             "Number of Samples" => 2,
-            "Number of Sub Packages" => 2
+            "Number of Sub Packages" => 2,
         },
 
         "detection" => {
@@ -68,7 +73,10 @@ module OLAKits
                     "4",
                     "5",
                     "6",
-                    "7"
+                    "7",
+                    "8",
+                    "9",
+                    "10"
                 ],
                 "diluent A" => "0",
                 "stop" => "1",
