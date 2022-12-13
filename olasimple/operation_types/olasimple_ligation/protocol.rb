@@ -63,6 +63,9 @@ class Protocol
     'Vortex mixer'
   ].freeze
   COMPONENTS = PACK_HASH['Components']['sample tubes']
+  COLORS_ODD = PACK_HASH['Components']['tubes_blue']
+  COLORS_EVEN = PACK_HASH['Components']['tubes_pink']
+  COLORS = [COLORS_ODD, COLORS_EVEN]
 
   ##########################################
   # ##
@@ -200,12 +203,13 @@ class Protocol
       show_open_package(kit_and_unit, '', ops.first.temporary[:pack_hash][NUM_SUB_PACKAGES_FIELD_VALUE]) do
         tube = make_tube(closedtube, '', ops.first.tube_label('diluent A'), 'medium')
         num_samples = ops.first.temporary[:pack_hash][NUM_SAMPLES_FIELD_VALUE]
+        # num_samples = 10
         grid = SVGGrid.new(1, num_samples, 0, 100)
         tokens = ops.first.output_tokens(OUTPUT)
         ops.each_with_index do |op, i|
           _tokens = tokens.dup
           _tokens[-1] = op.temporary[:input_sample]
-          ligation_tubes = display_ligation_tubes(*_tokens, COLORS)
+          ligation_tubes = display_ligation_tubes(*_tokens, COLORS[i]) # was just COLORS
           stripwell = ligation_tubes.g
           grid.add(stripwell, 0, i)
         end
@@ -263,7 +267,7 @@ class Protocol
   def rehydrate_ligation_mix(myops, expert_mode)
     gops = myops.group_by { |op| op.temporary[:input_kit_and_unit] }
     gops.each do |_unit, ops|
-      ops.each do |op|
+      ops.each_with_index do |op, idx|
         labels = op.output_refs(OUTPUT)
         if expert_mode
           # All transfers at once...
@@ -278,7 +282,7 @@ class Protocol
             note "Using #{P20_POST} add #{LIGATION_VOLUME}uL from #{DILUENT_L} into each of the #{COMPONENTS.length} tubes."
             warning "Only open one of the ligation tubes at a time and discard. Change your pipette tip after every transfer of #{DILUENT_L}."
 
-            ligation_tubes = display_ligation_tubes(*op.output_tokens(OUTPUT), COLORS).translate!(0, -20)
+            ligation_tubes = display_ligation_tubes(*op.output_tokens(OUTPUT), COLORS[idx]).translate!(0, -20)
 
             transfer_image = make_transfer(tubeA, ligation_tubes, 300, "#{LIGATION_VOLUME}uL", "(#{P20_POST} pipette)")
             note display_svg(transfer_image, 0.6)
@@ -328,12 +332,12 @@ class Protocol
   def add_template(myops, expert_mode)
     gops = myops.group_by { |op| op.temporary[:input_kit_and_unit] }
     gops.each do |_unit, ops|
-      ops.each do |op|
+      ops.each_with_index do |op, idx|
         from = op.input_ref(INPUT)
         labels = op.output_refs(OUTPUT)
         to_strip_name = "#{op.temporary[:output_unit]}-#{op.temporary[:output_sample]}"
         tubeP = make_tube(opentube, ['PCR Sample'], op.input_tube_label(INPUT), 'small').scale(0.75)
-        ligation_tubes = display_ligation_tubes(*op.output_tokens(OUTPUT), COLORS).translate!(0, -20)
+        ligation_tubes = display_ligation_tubes(*op.output_tokens(OUTPUT), COLORS[idx]).translate!(0, -20)
         pre_transfer_validation_with_multiple_tries(from, to_strip_name, tubeP, ligation_tubes)
         if expert_mode
           # All transfers at once...
