@@ -7,7 +7,7 @@
 # author: Justin Vrana
 # date: March 2018
 # updated version: March 28, 2022
-#
+# in progress: December 13, 2022 
 ##########################################
 
 needs 'OLASimple/OLAConstants'
@@ -30,9 +30,6 @@ class Protocol
   INPUT = 'Ligation Product'
   OUTPUT = 'Detection Strip'
   PACK = 'Detection Pack'
-  #A = 'Diluent A' #These don't seem to be used ever?
-  #G = 'Gold Mix'
-  #S = 'Stop Mix'
 
   ###########################################
   ## TERMINOLOGY
@@ -50,7 +47,6 @@ class Protocol
   PACK_HASH = DETECTION_UNIT
   THIS_UNIT = PACK_HASH['Unit Name']
 
-  #NUM_SUB_PACKAGES = 4
   NUM_SUB_PACKAGES = PACK_HASH['Number of Sub Packages'] 
   STOP_VOLUME = PACK_HASH['Stop Rehydration Volume']
   GOLD_VOLUME = PACK_HASH['Gold Rehydration Volume']
@@ -66,6 +62,7 @@ class Protocol
     'P1000 pipette and filtered tips',
     'P200 pipette and filtered tips',
     'P20 pipette and filtered tips',
+    'P200 multichannel pipette',
     'a spray bottle of 10% v/v bleach',
     'a spray bottle of 70% v/v ethanol',
     'a timer',
@@ -172,24 +169,6 @@ class Protocol
     end
   end
 
-  #def visual_call_instructions myops
-  def visual_call_instructions
-    show do
-      note "Now you will look at and evaluate images of the detection strips."
-      note "Each strip may have three bands:"
-      bullet "Top band corresponds to a flow control (C)"
-      bullet "Middle band corresponds to the wild-type genotype at that codon (W)"
-      bullet "Bottom band corresponds to the mutant genotype at that codon (M)"
-      note "You will be asked to compare your detection trips to some images on the screen"
-      note "Click \"OK\" in the upper right to continue."
-    end
-    show do
-      title "You will be making visual calls on these #{"scanned images".quote.bold}"
-      warning "Do not make calls based on your actual strips because:"
-      note "1) The assay is time-sensitive; a false signal can develop over time on the actual strips after you scan the strips."
-      note "2) Doctors will confirm your visual calls based on the scanned images, not the actual strips."
-    end
-  end
 
 
 
@@ -536,12 +515,6 @@ class Protocol
       note 'Do not continue to the next step until signal is visible.'
     end
 
-    # show do
-    #   title "IMPORTANT NOTE TO JUSTIN"
-    #   warning "This protocol should be broken into two since technician will be moving from one computer to the next."
-    #   note "This really depends on whether we want to use the laptop ONLY for detection purposes (I think we should)"
-    # end
-
     myops.each do |op|
       op.temporary[:filename] = "#{op.output(OUTPUT).item.id}_#{op.temporary[:output_kit]}#{op.temporary[:output_sample]}"
     end
@@ -581,7 +554,7 @@ class Protocol
             note "2. right-click and then click #{rename}"
             note "3. right-click and click #{paste} to rename file."
           end
-
+          # in olalib
           show_with_expected_uploads(op, op.temporary[:filename], SCANNED_IMAGE_UPLOAD_KEY) do
             title "Upload file <b>#{op.temporary[:filename]}</b>"
             note "Click the button below to upload file <b>#{op.temporary[:filename]}</b>"
@@ -648,160 +621,6 @@ class Protocol
     show do
       title 'Thank you!'
       note 'Thank you for your hard work.'
-    end
-  end
-
-  def analysis(ops)
-    band_choices = {
-      "M": { bands: [mut_band], description: '-CTRL -WT +MUT' },
-      "N": { bands: [control_band, wt_band, mut_band], description: '+CTRL +WT +MUT' },
-      "O": { bands: [control_band, mut_band], description: '+CTRL -WT +MUT' },
-      "P": { bands: [control_band, wt_band], description: '+CTRL +WT -MUT' },
-      "Q": { bands: [control_band], description: '+CTRL -WT -MUT' },
-      "R": { bands: [], description: '-CTRL -WT -MUT' }
-    }
-
-    categories = {
-      "M": POSITIVE,
-      "N": POSITIVE,
-      "O": POSITIVE,
-      "P": NEGATIVE,
-      "Q": 'ligation failure',
-      "R": 'detection failure'
-    }
-
-    begin
-      run_image_analysis ops.running, band_choices, categories
-      show_calls ops.running, band_choices
-      show_summary ops.running
-    rescue
-      show do
-        note "Processing Failed. Be sure to save image for processing later."
-      end
-    end
-  end
-
-  def run_image_analysis(ops, _band_choices, category_hash)
-    ops.each do |op|
-      image_result = nil
-      5.times.each do |_i|
-        break if image_result
-
-        upload = op.temporary[SCANNED_IMAGE_UPLOAD_KEY]
-        image_result = make_calls_from_image(upload)
-      end
-
-      if image_result.nil?
-        op.error(:image_result_failed, 'Image processing has failed. Check that the OLA IP service is running and connected correctly, and that the file is in a normal image format.')
-        next
-      end
-
-      this_kit = op.temporary[:output_kit]
-      this_unit = op.temporary[:output_unit]
-      this_sample = op.temporary[:output_sample]
-
-      raise 'scanned image had less strips than expected!' if PREV_COMPONENTS.size > image_result.size && !debug
-      raise 'scanned image had more strips than expected!' if PREV_COMPONENTS.size < image_result.size && !debug
-
-      PREV_COMPONENTS.each.with_index do |_this_component, i|
-        alias_label = op.output_refs(OUTPUT)[i]
-        the_choice = image_result[i]
-        op.output(OUTPUT).item.associate(make_call_key(alias_label), the_choice)
-        op.output(OUTPUT).item.associate(make_call_category_key(alias_label), category_hash[the_choice.to_sym])
-        op.associate(make_call_key(alias_label), the_choice)
-        op.associate(make_call_category_key(alias_label), category_hash[the_choice.to_sym])
-      end
-    end
-  end
-
-  def make_call_key(alias_label)
-    "#{alias_label}_call".to_sym
-  end
-
-  def make_call_description_key(alias_label)
-    "#{alias_label}_call_description".to_sym
-  end
-
-  def make_call_category_key(alias_label)
-    "#{alias_label}_call_category".to_sym
-  end
-
-  def show_calls(myops, band_choices)
-    myops.each do |op|
-      kit_summary = {}
-
-      this_kit = op.temporary[:input_kit]
-      this_item = op.output(OUTPUT).item
-      this_unit = op.temporary[:output_unit]
-      this_sample = op.temporary[:output_sample]
-
-      grid = SVGGrid.new(MUTATION_LABELS.length, 1, 90, 10)
-      categories = []
-
-      PREV_COMPONENTS.each.with_index do |this_component, i|
-        alias_label = op.output_refs(OUTPUT)[i]
-        strip_label = tube_label(this_kit, this_unit, this_component, this_sample)
-        strip = make_strip(strip_label, COLORS[i] + 'strip')
-        band_choice = this_item.get(make_call_key(alias_label))
-        codon_label = label(MUTATION_LABELS[i], 'font-size'.to_sym => 25)
-        codon_label.align_with(strip, 'center-bottom')
-        codon_label.align!('center-top').translate!(0, 30)
-        category = this_item.get(make_call_category_key(alias_label))
-        kit_summary[MUTATION_LABELS[i]] = { alias: alias_label, category: category.to_s, call: band_choice.to_s }
-        tokens = category.split(' ')
-        tokens.push('') if tokens.length == 1
-        category_label = two_labels(*tokens)
-        category_label.scale!(0.75)
-        category_label.align!('center-top')
-        category_label.align_with(codon_label, 'center-bottom')
-        category_label.translate!(0, 10)
-        bands = band_choices[band_choice.to_sym][:bands]
-        grid.add(strip, i, 0)
-        grid.add(codon_label, i, 0)
-        grid.add(category_label, i, 0)
-        bands.each do |band|
-          grid.add(band, i, 0)
-        end
-      end
-
-      op.associate(:results, kit_summary)
-      op.output(OUTPUT).item.associate(:results, kit_summary)
-      op.temporary[:results] = kit_summary
-
-      img = SVGElement.new(children: [grid], boundx: PREV_COMPONENTS.size * 100, boundy: 350)
-      img.translate!(15)
-      show do
-        refs = op.output_refs(OUTPUT)
-        title "Here is the summary of your results for <b>#{refs[0]} to #{refs[-1]}</b>"
-        note display_svg(img)
-      end
-    end
-  end
-
-  def show_summary(ops)
-    ops.each do |op|
-      hits = op.temporary[:results].select { |_k, v| v == POSITIVE }
-    end
-    show do
-      title 'Sample summary'
-      note "You analyzed #{ops.length} #{'kit'.pluralize(ops.length)}. Below is the exportable summarized data if you need it."
-
-      results_hash = {}
-      kits = ops.map { |op| op.output(OUTPUT).item.get(KIT_KEY) }
-      samples = ops.map { |op| op.output(OUTPUT).item.get(SAMPLE_KEY) }
-      patients = ops.map { |op| op.output(OUTPUT).item.get(PATIENT_KEY) }
-      t = Table.new
-      t.add_column('Kit', kits)
-      t.add_column('Sample', samples)
-      t.add_column('Patient ID', patients)
-      MUTATION_LABELS.each do |label|
-        col = ops.map { |op| op.temporary[:results][label][:category] }
-        t.add_column(label, col)
-        results_hash[label] = col
-      end
-      results_hash['kits'] = kits
-      results_hash['samples'] = samples
-      table t
     end
   end
 end
