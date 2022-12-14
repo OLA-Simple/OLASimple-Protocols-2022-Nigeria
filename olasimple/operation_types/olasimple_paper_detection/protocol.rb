@@ -7,7 +7,7 @@
 # author: Justin Vrana
 # date: March 2018
 # updated version: March 28, 2022
-# in progress: December 13, 2022 
+# in progress: December 13, 2022
 ##########################################
 
 needs 'OLASimple/OLAConstants'
@@ -26,7 +26,7 @@ class Protocol
   ###########################################
   ## INPUT/OUTPUT
   ###########################################
-  # F
+ 
   INPUT = 'Ligation Product'
   OUTPUT = 'Detection Strip'
   PACK = 'Detection Pack'
@@ -47,6 +47,7 @@ class Protocol
   PACK_HASH = DETECTION_UNIT
   THIS_UNIT = PACK_HASH['Unit Name']
 
+  #NUM_SUB_PACKAGES = 4
   NUM_SUB_PACKAGES = PACK_HASH['Number of Sub Packages'] 
   STOP_VOLUME = PACK_HASH['Stop Rehydration Volume']
   GOLD_VOLUME = PACK_HASH['Gold Rehydration Volume']
@@ -90,7 +91,6 @@ class Protocol
     save_temporary_input_values(operations, INPUT)
     save_temporary_output_values(operations)
     expert_mode = true
-
     introduction #operations.running
     record_technician_id
     safety_warning
@@ -106,16 +106,12 @@ class Protocol
     validate_detection_inputs(sorted_ops.running)
 
     stop_ligation_product(sorted_ops.running, expert_mode)
-    # short_timer
+    short_timer
     rehydrate_gold_solution(sorted_ops.running)
     display_detection_strip_diagram
-    add_ligation_product_to_strips(sorted_ops.running)
-    add_gold_solution(sorted_ops.running)
-    read_from_scanner(sorted_ops.running)
-
-# Visual Call 
-    visual_call_instructions
-    #analysis operations.running
+    # add_ligation_product_to_strips(sorted_ops.running)
+    # add_gold_solution(sorted_ops.running)
+    # read_from_scanner(sorted_ops.running)
 
     discard_things(sorted_ops.running)
     clean_area(AREA)
@@ -169,9 +165,6 @@ class Protocol
     end
   end
 
-
-
-
   def get_detection_packages(myops)
     gops = group_packages(myops)
     show do
@@ -202,11 +195,15 @@ class Protocol
 
       tokens = ops.first.output_tokens(OUTPUT)
       num_samples = ops.first.temporary[:pack_hash][NUM_SAMPLES_FIELD_VALUE]
+      
+      test_colors_odd = ["blue1", "blue2","blue3", "blue4", "blue5", "blue5", "blue4", "blue3", "blue2", "blue1"]
+      test_colors_even = ["pink1", "pink2","pink3", "pink4", "pink5", "pink5", "pink4", "pink3", "pink2", "pink1"]
+      test_colors = ['pink1', 'red', 'yellow', 'red', 'blue', 'green', 'yellow', 'blue', 'red', 'green']
 
       grid = SVGGrid.new(num_samples, num_samples, 50, 50)
       ops.each_with_index do |op, i|
         tokens = op.output_tokens(OUTPUT)
-        grid.add(display_strip_panel(*tokens, COLORS).scale!(0.5), i, i)
+        grid.add(display_strip_panel(*tokens, test_colors).scale!(0.5), i, i) # was COLORS
       end
 
       diluentATube = make_tube(closedtube, 'Diluent A', ops.first.tube_label('diluent A'), 'medium', true).scale!(0.75)
@@ -501,6 +498,7 @@ class Protocol
   end
 
   def read_from_scanner(myops)
+    debug = true
     gops = group_packages(myops)
     show do
       title "Bring #{pluralizer(STRIP, myops.length * PREV_COMPONENTS.length)} to the #{PHOTOCOPIER}."
@@ -554,7 +552,7 @@ class Protocol
             note "2. right-click and then click #{rename}"
             note "3. right-click and click #{paste} to rename file."
           end
-          # in olalib
+
           show_with_expected_uploads(op, op.temporary[:filename], SCANNED_IMAGE_UPLOAD_KEY) do
             title "Upload file <b>#{op.temporary[:filename]}</b>"
             note "Click the button below to upload file <b>#{op.temporary[:filename]}</b>"
@@ -623,4 +621,5 @@ class Protocol
       note 'Thank you for your hard work.'
     end
   end
-end
+
+end # protocol
