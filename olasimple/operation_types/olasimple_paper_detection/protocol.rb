@@ -73,12 +73,6 @@ class Protocol
   NEGATIVE = 'negative'
   DEBUG_UPLOAD_ID = 1
   
-#   COLORS_ODD = LIGATION_UNIT['Components']['tubes_blue']
-#   COLORS_EVEN = LIGATION_UNIT['Components']['tubes_pink']
-#   COLORS = [COLORS_ODD, COLORS_EVEN]
-    colors_odd = ["blue1", "blue2","blue3", "blue4", "blue5", "blue5", "blue4", "blue3", "blue2", "blue1"]
-    colors_even = ["pink1", "pink2","pink3", "pink4", "pink5", "pink5", "pink4", "pink3", "pink2", "pink1"]
-    TEST_COLORS = [colors_odd, colors_even]
 
   ##########################################
   # ##
@@ -98,10 +92,10 @@ class Protocol
     save_temporary_output_values(operations)
     expert_mode = true
     introduction #operations.running
-    # record_technician_id
-    # safety_warning
-    # area_preparation POST_PCR, MATERIALS, PRE_PCR
-    # simple_clean('OLASimple Paper Detection')
+    record_technician_id
+    safety_warning
+    area_preparation POST_PCR, MATERIALS, PRE_PCR
+    simple_clean('OLASimple Paper Detection')
 
     get_detection_packages operations.running
     validate_detection_packages operations.running
@@ -114,7 +108,9 @@ class Protocol
     stop_ligation_product(sorted_ops.running, expert_mode) # add stop mix 
     short_timer
     rehydrate_gold_solution(sorted_ops.running)
-    display_detection_strip_diagram
+    # display_detection_strip_diagram
+    
+    prepare_to_add_ligation_product(sorted_ops.running)
     add_ligation_product_to_strips(sorted_ops.running)
     add_gold_solution(sorted_ops.running)
     # read_from_scanner(sorted_ops.running)
@@ -205,7 +201,7 @@ class Protocol
       grid = SVGGrid.new(num_samples, num_samples, 50, 50)
       ops.each_with_index do |op, i|
         tokens = op.output_tokens(OUTPUT)
-        grid.add(display_strip_panel(*tokens, COLORS).scale!(0.5), i, i) # was COLORS
+        grid.add(display_strip_panel(*tokens, COLORS[i]).scale!(0.5), i, i) # was COLORS
       end
 
       diluentATube = make_tube(closedtube, 'Diluent A', ops.first.tube_label('diluent A'), 'medium', true).scale!(0.75)
@@ -276,7 +272,7 @@ class Protocol
 
       gops.each do |_unit, ops|
         ops.each_with_index do |op, idx|
-          img = display_ligation_tubes(*op.input_tokens(INPUT), TEST_COLORS[idx])
+          img = display_ligation_tubes(*op.input_tokens(INPUT), COLORS[idx])
           note display_svg(img, 0.75) # was 75
         end # ops each do display tubes
       end # gops each do unit ops
@@ -307,7 +303,7 @@ class Protocol
           tube = tube.g
           tube.g.boundx = 0
           labeled_tube = make_tube(closedtube, STOP_MIX, op.tube_label('stop'), 'medium', true)
-          ligation_tubes = display_ligation_tubes(*op.input_tokens(INPUT), TEST_COLORS[idx])
+          ligation_tubes = display_ligation_tubes(*op.input_tokens(INPUT), COLORS[idx])
           ligation_tubes.align!('bottom-left')
           ligation_tubes.align_with(tube, 'bottom-right')
           ligation_tubes.translate!(50)
@@ -325,7 +321,7 @@ class Protocol
             tube = tube.g
             tube.g.boundx = 0
             labeled_tube = make_tube(closedtube, STOP_MIX, op.tube_label('stop'), 'medium', true)
-            ligation_tubes = display_ligation_tubes(*op.input_tokens(INPUT), TEST_COLORS[idx])
+            ligation_tubes = display_ligation_tubes(*op.input_tokens(INPUT), COLORS[idx])
             ligation_tubes.align!('bottom-left')
             ligation_tubes.align_with(tube, 'bottom-right')
             ligation_tubes.translate!(50)
@@ -344,7 +340,7 @@ class Protocol
               note 'Discard pipette tip.'
               tubeS = make_tube(opentube, STOP_MIX, op.tube_label('stop'), 'medium')
               transfer_image = transfer_to_ligation_tubes_with_highlight(
-                tubeS, i, *op.input_tokens(INPUT), TEST_COLORS[idx], STOP_TO_SAMPLE_VOLUME, "(#{P20_POST} pipette)"
+                tubeS, i, *op.input_tokens(INPUT), COLORS[idx], STOP_TO_SAMPLE_VOLUME, "(#{P20_POST} pipette)"
               )
               note display_svg(transfer_image, 0.75)
             end # show do for each label under else blocks
@@ -385,12 +381,11 @@ class Protocol
       note display_svg(detection_strip_diagram, 0.75)
     end
   end
-
-  def add_ligation_product_to_strips(myops)
-    gops = group_packages(myops)
-
+  
+  
+  def prepare_to_add_ligation_product(myops)
     show do
-      title 'ADD LIGATION PRODUCT: Wait for stop cycle to finish (5 minutes).'
+      title 'PREPARE TO ADD LIGATION PRODUCT: Wait for stop cycle to finish (5 minutes).'
       note "Wait for the #{THERMOCYCLER} containing your samples to finish. "
       bullet "If the #{THERMOCYCLER} beeps, it is done. If not, continue waiting."
       warning "Once the #{THERMOCYCLER} finishes, <b>IMMEDIATELY</b> continue to the next step."
@@ -399,28 +394,36 @@ class Protocol
       check "Centrifuge #{'sample'.pluralize(PREV_COMPONENTS.length)} for 5 seconds to pull down liquid"
       check "Place on rack in the #{POST_PCR.bold} area."
     end
+  end
+
+  def add_ligation_product_to_strips(myops)
+    gops = group_packages(myops)
 
     timer_set = false
     gops.each do |_unit, ops|
-      ops.each do |op|
+      ops.each_with_index do |op, i|
         kit = op.temporary[:output_kit] #
         sample = op.temporary[:output_sample]
         panel_unit = op.temporary[:output_unit]
-    
         tube_unit = op.temporary[:input_unit]
 
         # Validate samples
         from_name = "#{op.temporary[:input_unit]}-#{op.temporary[:input_sample]}"
         to_name = "#{op.temporary[:output_unit]}-#{op.temporary[:output_sample]}"
         
-        svg_both = display_panel_and_tubes(kit, panel_unit, tube_unit, PREV_COMPONENTS, sample, COLORS).translate!(50).scale!(0.8)
-        p = proc do
-          title "Arrange #{STRIPS} and tubes for sample #{op.temporary[:input_sample]}" # for sample 1?
-          note "Place the #{STRIPS} #{to_name} and #{LIGATION_SAMPLE.pluralize(PREV_COMPONENTS.length)} #{from_name} as shown in the picture:"
-          note "Scan in #{to_name} and #{from_name}"
-        end # end proc do
-        content = ShowBlock.new(self).run(&p)
-        pre_transfer_validation_with_multiple_tries(from_name, to_name, svg_both, content_override: content)
+        mutation_colors = ["red", "green", "yellow", "blue", "purple", "white", "gray", "red", "green", "yellow"]
+    # (kit, panel_unit, tube_unit, components, sample, colors)
+        
+    #     # svg_both = display_panel_and_tubes(kit, panel_unit, tube_unit, PREV_COMPONENTS, sample, COLORS[i]).translate!(50).scale!(0.8)
+        # svg_both = display_panel_and_tubes(kit, panel_unit, tube_unit, PREV_COMPONENTS, sample, mutation_colors).translate!(50).scale!(0.8)
+    
+        # p = proc do
+        #   title "Arrange #{STRIPS} and tubes for sample #{op.temporary[:input_sample]}" # for sample 1?
+        #   note "Place the #{STRIPS} #{to_name} and #{LIGATION_SAMPLE.pluralize(PREV_COMPONENTS.length)} #{from_name} as shown in the picture:"
+        #   note "Scan in #{to_name} and #{from_name}"
+        # end # end proc do
+        # content = ShowBlock.new(self).run(&p)
+        # pre_transfer_validation_with_multiple_tries(from_name, to_name, svg_both, content_override: content)
 
         # inner iteration should start here to show each half separately
         left_components = PREV_COMPONENTS[0..4]
@@ -449,14 +452,17 @@ class Protocol
           
             test_strip_colors = ['pink1', 'red', 'yellow', 'green', 'blue']
             
-            input_tokens[2] = side
-            output_tokens[2] = side
-          
-            # update so it shows one half and then other as a separate step
-            tubes = display_ligation_tubes(*input_tokens, TEST_COLORS[idx][0..4], [0, 1, 2, 3, 4], [], 90)
-            panel = display_strip_panel(*output_tokens, test_strip_colors)
-          
-          
+            input_tokens[2] = side # [1, 2, 3, 4, 5]
+            output_tokens[2] = side #[6, 7, 8, 9, 10]
+            
+            if idx == 0
+                tubes = display_ligation_tubes(*input_tokens, COLORS[i][0..4], [0, 1, 2, 3, 4], [], 90)
+                panel = display_strip_panel(*output_tokens, COLORS[i][0..4])
+            else
+                tubes = display_ligation_tubes(*input_tokens, COLORS[i][5..-1], [0, 1, 2, 3, 4], [], 90)
+                panel = display_strip_panel(*output_tokens, COLORS[i][5..-1])
+            end
+    
         #   tubes = display_ligation_tubes(*op.input_tokens(INPUT), COLORS, (0..PREV_COMPONENTS.length - 1).to_a, [], 90)
         #   panel = display_strip_panel(*op.output_tokens(OUTPUT), COLORS)
             tubes.align_with(panel, 'center-bottom')
@@ -466,8 +472,6 @@ class Protocol
             note display_svg(img, 0.6)
             end # end show do 
          end # side each
-         
-         
       end # ops each do 
     end # gops each do
   end # end add ligation product
@@ -517,9 +521,12 @@ class Protocol
         note '<hr>'
         check "Set a #{P200_POST} pipette to <b>[0 4 0]</b>. Transfer #{GOLD_TO_STRIP_VOLUME}uL of #{GOLD_MIX} #{ops.first.ref('gold').bold} to #{pluralizer(STRIP, PREV_COMPONENTS.length * ops.length)} at the SAMPLE PORT."
         grid = SVGGrid.new(ops.length, ops.length, 50, 50)
+        
+        mutation_colors = ["red", "green","yellow", "blue", "purple", "white", "gray", "red", "green", "yellow"]
         ops.each.with_index do |op, i|
           _tokens = op.output_tokens(OUTPUT)
-          grid.add(display_strip_panel(*_tokens, COLORS).scale!(0.5).translate!(0, -50), i, i)
+        #   grid.add(display_strip_panel(*_tokens, COLORS).scale!(0.5).translate!(0, -50), i, i)
+          grid.add(display_strip_panel(*_tokens, COLORS[i]).scale!(0.5).translate!(0, -50), i, i)
         end
         tubeG = make_tube(opentube, GOLD_MIX, ops.first.tube_label('gold'), 'medium', fluidclass: 'pinkfluid')
         img = make_transfer(tubeG, grid, 300, "#{GOLD_TO_STRIP_VOLUME}uL", '(each strip)')
