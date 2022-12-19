@@ -64,7 +64,8 @@ class Protocol
         my_temp_test_function(operations.running)
     
         call_instructions
-        make_visual_call(operations.running, band_choices)
+        # make_visual_call(operations.running, band_choices)
+        make_visual_call_test(operations.running, band_choices)
         conclusion
 
     end #main
@@ -76,7 +77,7 @@ class Protocol
                 kit_num = 'K001'
                 sample_num = sample_num_to_id(i + 1)
                 make_alias(op.input(INPUT).item, kit_num, PREV_UNIT, PREV_COMPONENTS, 'a patient id', sample_num)
-                op.input(INPUT).item.associate(SCANNED_IMAGE_UPLOAD_ID_KEY, DEBUG_UPLOAD_ID)
+                # op.input(INPUT).item.associate(SCANNED_IMAGE_UPLOAD_ID_KEY, DEBUG_UPLOAD_ID)
                 # make_alias(op.input(INPUT).item, kit_num, PREV_UNIT, PREV_COMPONENTS, 1)
             end #each with index
         end # if debug
@@ -103,7 +104,7 @@ class Protocol
     
     def introduction
         show do
-         title 'Welcome to OLASimple Analyses procotol'
+         title 'Welcome to OLASimple Analysis procotol'
          note 'In this protocol you will look at and evaluate images of the detction strips'
         end
     end
@@ -127,88 +128,77 @@ class Protocol
         end
     end # end call_instructions
     
-    
-    def make_visual_call(ops, band_choices)
-      ops.each do |op|
-        this_kit = op.temporary[:input_kit]
-        this_unit = op.temporary[:input_unit]
-        this_sample = op.temporary[:input_sample]
+    def make_visual_call_test(ops, band_choices)
         
-        op.temporary[:results] = []
+        # for each op, display that image and one tenth of the strip upload and get choices 
+        ops.each do |op|
+            this_kit = op.temporary[:input_kit]
+            this_unit = op.temporary[:input_unit]
+            this_sample = op.temporary[:input_sample]
+            
+            band_keys = ["M", "N", "O", "P", "Q", "R"]
+            test_colors = ["red", "green","yellow", "blue", "purple", "gray"]
         
-        show do 
-          note "in visual calls"
-          note "kit is #{this_kit}"
-          note "unit is #{this_unit}"
-          note "sample is #{this_sample}"
-        end
-          
-        PREV_COMPONENTS.each_with_index do |this_component, i|
-            alias_label = op.input_refs(INPUT)[i]
-            colorclass = COLORS[i] + "strip"
-            strip_label = tube_label(this_kit, this_unit, this_component, this_sample)
-            strip = make_strip(strip_label, colorclass).scale!(0.5)
-            question_mark = label("?", "font-size".to_sym => 100)
-            question_mark.align('center-center')
-            question_mark.align_with(strip, 'center-top')
-            question_mark.translate!(0, 75)
-            
-            index = 0
-            grid = SVGGrid.new(band_choices.length, 1, 100, 10)
-            
-            band_choices.each do |choice, band_hash|
-                this_strip = strip.inst.scale(1.0)
-                reading_window = SVGElement.new(boundy: 50)
-                          
-                # add strip
-                reading_window.add_child(this_strip)
-          
-                # add the bands
-                band_hash[:bands].each do |band|
-                    reading_window.add_child(band)
-                end # band_hash add bands
+            # make the reference image with the codon labels
+            grid = SVGGrid.new(6, 1, 90, 10)
+        
+            #self.two_labels("#{unit}#{component}", "#{sample}")
+        
+            band_keys.each_with_index do |band_key, idx|
+                # strip_label = tube_label("", band_key, "", "") # because labels needs an object of class label
+                strip_label = tube_label(this_kit, this_unit, band_key, this_sample)
+                make_strip(strip_label, test_colors[idx] + 'strip') # could really be any color since this is for reference
+                grid.add(strip, idx, 0)
                 
-                # crop label and bottom part of strip
-                c = reading_window.group_children
-                c.translate!(0, -40)
-                whitebox = SVGElement.new(boundx: 110, boundy: 400)
-                whitebox.add_child("<rect x=\"-1\" y=\"95\" width=\"102\" height=\"400\" fill=\"white\" />")
-                reading_window.add_child(whitebox)
-          
-                # add label
-                strip_choice = label(choice, "font-size".to_sym => 40)
-                strip_choice.align!('center-top')
-                strip_choice.align_with(whitebox, 'center-top')
-                strip_choice.translate!(-10, 110)
-                reading_window.add_child(strip_choice)
-          
-                grid.add(reading_window, index, 0)
-                index += 1
-            end # band choices each do
-            
-            grid.scale!(0.75)
-            img = SVGElement.new(children: [grid], boundx: 500, boundy: 250).scale(0.8)
-            
-            #needs error handling
-            upload = Upload.find(op.input(INPUT).item.get(SCANNED_IMAGE_UPLOAD_ID_KEY).to_i)
-            # upload = Upload.find(4)
+                	# labels for bottom, with results
+                choice_label = label(band_keys[idx], 'font-size'.to_sym => 25)
+                choice_label.align_with(strip, 'center-bottom')
+                choice_label.align!('center-top').translate!(0, 30)
+                
+                
+                # {"M": {bands: [mut_band], description: "-CTRL -WT +MUT"},}
+                bands = band_choices[band_key.to_sym][:bands]
+				# so this will give you [mut_band] or [control_band, wt_band, mut_band] or nothing depending on result
 
-            # this is will run once per strip -- based on prev components being 10
-            tech_choice = show do
-                title "Compare #{STRIP} #{alias_label} with the images below."
-                note "There are three possible pink/red #{BANDS} for the #{STRIP}."
-                note "Select the choice below that most resembles #{STRIP} #{alias_label}"
-                warning "<h2>Do not make calls based on the actual strips but based on the scanned images.</h2>"
-                warning "<h2>After you click OK, you cannot change your call."
-                note "Signal of all the lines does not have to be equally strong. Flow control signal is always the strongest."
-                select band_choices.keys.map {|k| k.to_s}, var: :strip_choice, label: "Choose:", default: 0
-                raw display_strip_section(upload, i, PREV_COMPONENTS.length, "25%")
-                note display_svg(img)
-            end # choice show block
+                grid.add(choice_label, idx, 0)
+                # grid.add(category_label, i, 0)
+
+                bands.each do |band|
+                    grid.add(band, idx, 0) # then this is just adding the lines or no adding them, as the result went 
+                end # add bands
+                
+                
+            end # band keys do
             
+                reference_img = SVGElement.new(children: [grid], boundx: PREV_COMPONENTS.size * 100, boundy: 350)
+                reference_img.translate!(15)
+        
+            op.temporary[:results] = []
+            
+            upload = Upload.find(4)
+            show do
+                note "in visual calls"
+                note "kit is #{this_kit}"
+                note "unit is #{this_unit}"
+                note "sample is #{this_sample}"
+            end # test show do 
+            
+            PREV_COMPONENTS.each_with_index do |this_component, idx|
+                alias_label = op.input_refs(INPUT)[idx]
+                # note display_svg(reference_img)
+                tech_choice = show do
+                    title "Compare #{STRIP} #{alias_label} with the images below."
+                    note "There are three possible pink/red #{BANDS} for the #{STRIP}."
+                    note "Select the choice below that most resembles #{STRIP} #{alias_label}"
+                    # warning "<h2>After you click OK, you cannot change your call."
+                    note "Signal of all the lines does not have to be equally strong. Flow control signal is always the strongest."
+                    select band_choices.keys.map {|k| k.to_s}, var: :strip_choice, label: "Choose:", default: 0
+                    note display_svg(reference_img)
+                    raw display_strip_section(upload, idx, PREV_COMPONENTS.length, "25%")
+                end # tech choice show do
+                
             if debug
-                # "M": {bands: [mut_band], description: "-CTRL -WT +MUT"},
-                tech_choice[:strip_choice] = band_choices.keys[i % 5]
+                tech_choice[:strip_choice] = band_choices.keys[idx % 5]
             end # debug 
 
             op.temporary[:results].append(tech_choice[:strip_choice])
@@ -217,22 +207,28 @@ class Protocol
                 note "Tech Chose #{tech_choice}"
                 note "Results are #{op.temporary[:results]}"
                 # tech_choice {:strip_choice=>"M", :timestamp=>1671042324000}
-            end
+            end # display tech choice show do
             
-            current_choice = tech_choice[:strip_choice]
+                        # current_choice = tech_choice[:strip_choice]
             
-            # create data associations for item
-            op.input(INPUT).item.associate(make_call_key(alias_label), current_choice)
+            # # create data associations for item
+            # op.input(INPUT).item.associate(make_call_key(alias_label), current_choice)
             
-            # create data associations for operation -- maybe not needed here 
-            op.associate(make_call_key(alias_label), current_choice)
+            # # create data associations for operation -- maybe not needed here 
+            # op.associate(make_call_key(alias_label), current_choice)
             
-            # op.associate(make_call_category_key(alias_label), category_hash[current_choice.to_sym])
-            # op.input(INPUT).item.associate(make_call_category_key(alias_label), category_hash[current_choice.to_sym])
-
-        end #PREV_COMPONENTS
-      end # ops each with index
-  end # make visual call method
+            # # op.associate(make_call_category_key(alias_label), category_hash[current_choice.to_sym])
+            # # op.input(INPUT).item.associate(make_call_category_key(alias_label), category_hash[current_choice.to_sym])
+            
+            
+            
+            end # prev components 
+            
+        end # ops each do
+    end # make call test
+    
+    
+    
   
     def make_call_key alias_label
         "#{alias_label}_tech_call".to_sym
@@ -251,3 +247,106 @@ class Protocol
 
 end #protocol
 
+
+# def make_visual_call(ops, band_choices)
+#       ops.each do |op|
+#         this_kit = op.temporary[:input_kit]
+#         this_unit = op.temporary[:input_unit]
+#         this_sample = op.temporary[:input_sample]
+        
+#         op.temporary[:results] = []
+          
+#         PREV_COMPONENTS.each_with_index do |this_component, i|
+#             alias_label = op.input_refs(INPUT)[i]
+#             colorclass = COLORS[i] + "strip"
+#             strip_label = tube_label(this_kit, this_unit, this_component, this_sample)
+#             strip = make_strip(strip_label, colorclass).scale!(0.5)
+#             question_mark = label("?", "font-size".to_sym => 100)
+#             question_mark.align('center-center')
+#             question_mark.align_with(strip, 'center-top')
+#             question_mark.translate!(0, 75)
+            
+#             index = 0
+#             grid = SVGGrid.new(band_choices.length, 1, 100, 10)
+            
+#             band_choices.each do |choice, band_hash|
+#                 this_strip = strip.inst.scale(1.0)
+#                 reading_window = SVGElement.new(boundy: 50)
+                          
+#                 # add strip
+#                 reading_window.add_child(this_strip)
+          
+#                 # add the bands
+#                 band_hash[:bands].each do |band|
+#                     reading_window.add_child(band)
+#                 end # band_hash add bands
+                
+#                 # crop label and bottom part of strip
+#                 c = reading_window.group_children
+#                 c.translate!(0, -40)
+#                 whitebox = SVGElement.new(boundx: 110, boundy: 400)
+#                 whitebox.add_child("<rect x=\"-1\" y=\"95\" width=\"102\" height=\"400\" fill=\"white\" />")
+#                 reading_window.add_child(whitebox)
+          
+#                 # add label
+#                 strip_choice = label(choice, "font-size".to_sym => 40)
+#                 strip_choice.align!('center-top')
+#                 strip_choice.align_with(whitebox, 'center-top')
+#                 strip_choice.translate!(-10, 110)
+#                 reading_window.add_child(strip_choice)
+          
+#                 grid.add(reading_window, index, 0)
+#                 index += 1
+#             end # band choices each do
+            
+#             grid.scale!(0.75)
+#             img = SVGElement.new(children: [grid], boundx: 500, boundy: 250).scale(0.8)
+            
+#             #needs error handling
+#             # upload = Upload.find(op.input(INPUT).item.get(SCANNED_IMAGE_UPLOAD_ID_KEY).to_i)
+#             upload = Upload.find(4)
+
+#             # this is will run once per strip -- based on prev components being 10
+#             tech_choice = show do
+#                 title "Compare #{STRIP} #{alias_label} with the images below."
+#                 note "There are three possible pink/red #{BANDS} for the #{STRIP}."
+#                 note "Select the choice below that most resembles #{STRIP} #{alias_label}"
+#                 # warning "<h2>Do not make calls based on the actual strips but based on the scanned images.</h2>"
+#                 # warning "<h2>After you click OK, you cannot change your call."
+#                 note "Signal of all the lines does not have to be equally strong. Flow control signal is always the strongest."
+#                 select band_choices.keys.map {|k| k.to_s}, var: :strip_choice, label: "Choose:", default: 0
+#                 note ""
+#                 note display_svg(img)
+#                 note "_______________"
+#                 raw display_strip_section(upload, i, PREV_COMPONENTS.length, "25%")
+#                 note ""
+                
+#             end # choice show block
+            
+#             # if debug
+#             #     # "M": {bands: [mut_band], description: "-CTRL -WT +MUT"},
+#             #     tech_choice[:strip_choice] = band_choices.keys[i % 5]
+#             # end # debug 
+
+#             # op.temporary[:results].append(tech_choice[:strip_choice])
+            
+#             # show do
+#             #     note "Tech Chose #{tech_choice}"
+#             #     note "Results are #{op.temporary[:results]}"
+#             #     # tech_choice {:strip_choice=>"M", :timestamp=>1671042324000}
+#             # end
+            
+#             # current_choice = tech_choice[:strip_choice]
+            
+#             # # create data associations for item
+#             # op.input(INPUT).item.associate(make_call_key(alias_label), current_choice)
+            
+#             # # create data associations for operation -- maybe not needed here 
+#             # op.associate(make_call_key(alias_label), current_choice)
+            
+#             # # op.associate(make_call_category_key(alias_label), category_hash[current_choice.to_sym])
+#             # # op.input(INPUT).item.associate(make_call_category_key(alias_label), category_hash[current_choice.to_sym])
+
+#         end #PREV_COMPONENTS
+#       end # ops each with index
+#   end # make visual call method
