@@ -35,8 +35,10 @@ module OLAConstants
   RT_UNIT = KIT_SELECTION["rt module"]
   LIGATION_UNIT = KIT_SELECTION["ligation"]
   DETECTION_UNIT = KIT_SELECTION["detection"]
-  ANALYSIS_UNIT = KIT_SELECTION["analysis"]
-  COLORS = DETECTION_UNIT["Mutation Colors"]
+  ANALYSIS_UNIT = KIT_SELECTION["analysis"] # for visual call
+  COLORS_ODD = LIGATION_UNIT['Components']['tubes_blue']
+  COLORS_EVEN = LIGATION_UNIT['Components']['tubes_pink']
+  COLORS = [COLORS_ODD, COLORS_EVEN]
 
   ##########################################
   # LAB SPECIFICATIONS
