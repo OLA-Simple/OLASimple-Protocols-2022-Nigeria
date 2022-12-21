@@ -113,7 +113,7 @@ class Protocol
     prepare_to_add_ligation_product(sorted_ops.running)
     add_ligation_product_to_strips(sorted_ops.running)
     add_gold_solution(sorted_ops.running)
-    # read_from_scanner(sorted_ops.running)
+    read_from_scanner(sorted_ops.running)
 
     discard_things(sorted_ops.running)
     clean_area(AREA)
@@ -158,7 +158,6 @@ class Protocol
     end
   end
 
-  #def introduction(_myops)
   def introduction
     show do
       title 'Welcome to OLASimple Paper Detection procotol'
@@ -286,16 +285,14 @@ class Protocol
 
   def stop_ligation_product(myops, expert_mode)
     gops = myops.group_by { |op| op.temporary[:output_kit_and_unit] }
-    show do
-        title "STOP LIGATION PRODUCT"
-    end
 
     gops.each do |_unit, ops|
       from = ops.first.ref('stop')
       ops.each_with_index do |op, idx|
         to_labels = op.input_refs(INPUT)
         
-        show do # tubes go off screen
+        show do
+          title 'STOP LIGATION PRODUCT'
           title "Position #{STOP_MIX} #{from.bold} and colored tubes #{op.input_refs(INPUT)[0].bold} to #{op.input_refs(INPUT)[-1].bold} in front of you."
           note "In the next steps you will add #{STOP_MIX} to #{pluralizer('tube', PREV_COMPONENTS.length)}"
           tube = closedtube.scale(0.75)
@@ -411,19 +408,26 @@ class Protocol
         from_name = "#{op.temporary[:input_unit]}-#{op.temporary[:input_sample]}"
         to_name = "#{op.temporary[:output_unit]}-#{op.temporary[:output_sample]}"
         
-        mutation_colors = ["red", "green", "yellow", "blue", "purple", "white", "gray", "red", "green", "yellow"]
-    # (kit, panel_unit, tube_unit, components, sample, colors)
-        
-    #     # svg_both = display_panel_and_tubes(kit, panel_unit, tube_unit, PREV_COMPONENTS, sample, COLORS[i]).translate!(50).scale!(0.8)
-        # svg_both = display_panel_and_tubes(kit, panel_unit, tube_unit, PREV_COMPONENTS, sample, mutation_colors).translate!(50).scale!(0.8)
+        svg_both = display_panel_and_tubes(kit, panel_unit, tube_unit, PREV_COMPONENTS, sample, COLORS[i]).translate!(50).scale!(0.8)
     
         # p = proc do
         #   title "Arrange #{STRIPS} and tubes for sample #{op.temporary[:input_sample]}" # for sample 1?
         #   note "Place the #{STRIPS} #{to_name} and #{LIGATION_SAMPLE.pluralize(PREV_COMPONENTS.length)} #{from_name} as shown in the picture:"
         #   note "Scan in #{to_name} and #{from_name}"
+        #   note display_svg(svg_both)
         # end # end proc do
         # content = ShowBlock.new(self).run(&p)
         # pre_transfer_validation_with_multiple_tries(from_name, to_name, svg_both, content_override: content)
+        #pre_transfer_validation_with_multiple_tries(from_name, to_name, from_svg=nil, to_svg=nil, content_override: nil)
+        # (from_name, to_name, from_svg, to_svg)
+        
+        show do
+          title "Arrange #{STRIPS} and tubes for sample #{op.temporary[:input_sample]}" # for sample 1?
+          note "Place the #{STRIPS} #{to_name} and #{LIGATION_SAMPLE.pluralize(PREV_COMPONENTS.length)} #{from_name} as shown in the picture:"
+          note "Scan in #{to_name} and #{from_name}"
+          note display_svg(svg_both)
+        end # end show do test
+        
 
         # inner iteration should start here to show each half separately
         left_components = PREV_COMPONENTS[0..4]
@@ -434,7 +438,7 @@ class Protocol
         
         components.each_with_index do |side, idx|
             show do
-              title "INNER SHOW DO: From each corresponding tube (as seen above), add #{SAMPLE_TO_STRIP_VOLUME}uL of #{LIGATION_SAMPLE} to the corresponding sample port of each #{STRIP}."
+              title "From each corresponding tube (as seen above), add #{SAMPLE_TO_STRIP_VOLUME}uL of #{LIGATION_SAMPLE} to the corresponding sample port of each #{STRIP}."
               unless timer_set
                 note '<h2>Complicated Step! Take note of all instructions before beginning transfers.</h2>'
                 note 'Set a 5 minute timer after adding the ligation sample to the <b>FIRST</b> strip at the SAMPLE PORT.'
@@ -449,8 +453,6 @@ class Protocol
               note "Match the sample tube color with the #{STRIP} color. For example, match #{op.input_refs(INPUT)[0].bold} to #{op.output_refs(OUTPUT)[0].bold}"
 
               warning 'Dispose of pipette tip and close tube after each strip.' 
-          
-            test_strip_colors = ['pink1', 'red', 'yellow', 'green', 'blue']
             
             input_tokens[2] = side # [1, 2, 3, 4, 5]
             output_tokens[2] = side #[6, 7, 8, 9, 10]
@@ -507,7 +509,8 @@ class Protocol
     set_timer = false
 
     show do
-      title 'ADD GOLD SOLUTION Wait until 5 minute timer ends'
+      title 'ADD GOLD SOLUTION' 
+      title 'Wait until 5 minute timer ends'
       warning 'Do not proceed before 5 minute timer is up.'
       note 'The strips need a chance to become fully wet.'
     end
@@ -522,15 +525,13 @@ class Protocol
         check "Set a #{P200_POST} pipette to <b>[0 4 0]</b>. Transfer #{GOLD_TO_STRIP_VOLUME}uL of #{GOLD_MIX} #{ops.first.ref('gold').bold} to #{pluralizer(STRIP, PREV_COMPONENTS.length * ops.length)} at the SAMPLE PORT."
         grid = SVGGrid.new(ops.length, ops.length, 50, 50)
         
-        mutation_colors = ["red", "green","yellow", "blue", "purple", "white", "gray", "red", "green", "yellow"]
         ops.each.with_index do |op, i|
           _tokens = op.output_tokens(OUTPUT)
-        #   grid.add(display_strip_panel(*_tokens, COLORS).scale!(0.5).translate!(0, -50), i, i)
           grid.add(display_strip_panel(*_tokens, COLORS[i]).scale!(0.5).translate!(0, -50), i, i)
         end
         tubeG = make_tube(opentube, GOLD_MIX, ops.first.tube_label('gold'), 'medium', fluidclass: 'pinkfluid')
         img = make_transfer(tubeG, grid, 300, "#{GOLD_TO_STRIP_VOLUME}uL", '(each strip)')
-        img.boundx = 900
+        img.boundx = 1000 # was 900
         img.boundy = 400
         img.translate!(40)
         note display_svg(img, 0.6)
@@ -559,7 +560,7 @@ class Protocol
     end
 
     gops.each do |_unit, ops|
-      ops.each do |op|
+      ops.each_with_index do |op, idx|
         labels = op.output_refs(OUTPUT)
         show do
           title "Scan #{STRIPS} <b>#{labels[0]} to #{labels[-1]}</b>"
@@ -605,7 +606,7 @@ class Protocol
           confirmed = show do
             title "Confirm image labels say #{op.temporary[:label_string].bold}"
             select %w[yes no], var: 'confirmed', label: 'Do the image labels and your image match?', default: 0
-            img = display_strip_panel(*op.output_tokens(OUTPUT), COLORS).g
+            img = display_strip_panel(*op.output_tokens(OUTPUT), COLORS[idx]).g
             img.boundy = 50
             note display_svg(img, 0.75)
             raw display_upload(op.temporary[SCANNED_IMAGE_UPLOAD_KEY])
