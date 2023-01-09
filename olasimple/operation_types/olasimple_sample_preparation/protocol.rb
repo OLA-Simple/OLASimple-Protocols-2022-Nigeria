@@ -136,7 +136,8 @@ class Protocol
         'Cold tube rack',
         '70% v/v Ethanol spray for cleaning',
         '10% v/v Bleach spray for cleaning',
-        'Molecular grade ethanol'
+        'Molecular grade ethanol',
+        'Biohazard Waste Container'
       ]
       materials.each do |m|
         check m
