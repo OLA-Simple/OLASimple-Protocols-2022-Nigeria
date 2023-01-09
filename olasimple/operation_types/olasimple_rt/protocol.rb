@@ -196,10 +196,11 @@ class Protocol
             to = ref(op.output(OUTPUT).item)
             # tubeS = make_tube(opentube, [SAMPLE_ALIAS, from], '', fluid = 'medium')
             tubeS = make_tube(opentube, [from], '', fluid = 'medium')
-            tubeP = make_tube(opentube, [to], '', fluid = 'medium').scale!(0.75)
+            tubeP = make_tube(opentube, [to], '', fluid = 'powder').scale!(0.75)
+
             #tubeS_closed = make_tube(closedtube, [SAMPLE_ALIAS, from], '', fluid = 'medium')
-            tubeS_closed = make_tube(closedtube, [from], '', fluid = 'medium')
-            tubeP_closed = make_tube(closedtube, [to], '', fluid = 'medium').translate!(0,40).scale!(0.75)
+            #tubeS_closed = make_tube(closedtube, [from], '', fluid = 'medium')
+            #tubeP_closed = make_tube(closedtube, [to], '', fluid = 'medium').translate!(0,40).scale!(0.75)
 
             #pre_transfer_validation_with_multiple_tries(from, to, tubeS_closed, tubeP_closed)
 
