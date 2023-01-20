@@ -7,7 +7,7 @@
 # author: Justin Vrana
 # date: March 2018
 # updated version: March 20, 2022
-#
+# updates in progress December 16
 ##########################################
 
 needs 'OLASimple/OLAConstants'
@@ -29,7 +29,6 @@ class Protocol
   INPUT = 'PCR Product'
   OUTPUT = 'Ligation Product'
   PACK = 'Ligation Pack'
-  # A = 'Diluent L0' #Update to be LO?? Not used
 
   ##########################################
   # TERMINOLOGY
@@ -41,7 +40,6 @@ class Protocol
 
   AREA = POST_PCR
 
-  # for debugging
   PREV_COMPONENT = '2'
   PREV_UNIT = 'A'
 
@@ -63,9 +61,6 @@ class Protocol
     'Vortex mixer'
   ].freeze
   COMPONENTS = PACK_HASH['Components']['sample tubes']
-  COLORS_ODD = PACK_HASH['Components']['tubes_blue']
-  COLORS_EVEN = PACK_HASH['Components']['tubes_pink']
-  COLORS = [COLORS_ODD, COLORS_EVEN]
 
   ##########################################
   # ##
@@ -100,7 +95,7 @@ class Protocol
     get_ligation_packages(operations.running)
     validate_ligation_packages(operations.running)
     open_ligation_packages(operations.running)
-    # check_for_tube_defects operations.running
+    # # check_for_tube_defects operations.running
     centrifuge_samples(sorted_ops.running)
     rehydrate_ligation_mix(sorted_ops.running, expert_mode)
     vortex_and_centrifuge_samples(sorted_ops.running)
@@ -203,13 +198,12 @@ class Protocol
       show_open_package(kit_and_unit, '', ops.first.temporary[:pack_hash][NUM_SUB_PACKAGES_FIELD_VALUE]) do
         tube = make_tube(closedtube, '', ops.first.tube_label('diluent A'), 'medium')
         num_samples = ops.first.temporary[:pack_hash][NUM_SAMPLES_FIELD_VALUE]
-        # num_samples = 10
         grid = SVGGrid.new(1, num_samples, 0, 100)
         tokens = ops.first.output_tokens(OUTPUT)
         ops.each_with_index do |op, i|
           _tokens = tokens.dup
           _tokens[-1] = op.temporary[:input_sample]
-          ligation_tubes = display_ligation_tubes(*_tokens, COLORS[i]) # was just COLORS
+          ligation_tubes = display_ligation_tubes(*_tokens, COLORS[i])
           stripwell = ligation_tubes.g
           grid.add(stripwell, 0, i)
         end
@@ -230,11 +224,10 @@ class Protocol
 
   def centrifuge_samples(ops)
     labels = ops.map { |op| op.temporary[:label_string] }
-    diluentL0Labels = ops.map { |op| op.ref('diluent L0') }.uniq
     show do
       title 'Centrifuge Diluent L0 and Ligation tubes for 5 seconds to pull down reagents'
       note 'Put the tag side of the rack toward the center of the centrifuge'
-      check "Centrifuge #{(labels + diluentL0Labels).to_sentence.bold} for 5 seconds."
+      check "Centrifuge #{(labels + ['L0']).to_sentence.bold} for 5 seconds."
     end
   end
 
@@ -274,7 +267,7 @@ class Protocol
           from = op.ref('diluent A')
           tubeA = make_tube(opentube, [DILUENT_L], op.tube_label('diluent L0'), 'medium')
           show do
-            title "Add #{DILUENT_L} to #{LIGATION_SAMPLE}s #{op.temporary[:label_string].bold}"
+            title "REHYDRATE MIX: Add #{DILUENT_L} to #{LIGATION_SAMPLE}s #{op.temporary[:label_string].bold}"
             labels.map! { |l| "<b>#{l}</b>" }
             note "In this step we will be adding #{LIGATION_VOLUME}uL of #{DILUENT_L} into #{pluralizer('tube', COMPONENTS.length)} "
             "of the colored strip of tubes labeled <b>#{labels[0]} to #{labels[-1]}</b>"
@@ -338,22 +331,22 @@ class Protocol
         to_strip_name = "#{op.temporary[:output_unit]}-#{op.temporary[:output_sample]}"
         tubeP = make_tube(opentube, ['PCR Sample'], op.input_tube_label(INPUT), 'small').scale(0.75)
         ligation_tubes = display_ligation_tubes(*op.output_tokens(OUTPUT), COLORS[idx]).translate!(0, -20)
-        pre_transfer_validation_with_multiple_tries(from, to_strip_name, tubeP, ligation_tubes)
+        # pre_transfer_validation_with_multiple_tries(from, to_strip_name, tubeP, ligation_tubes) # this is the error maybe??
         if expert_mode
           # All transfers at once...
           show do
             raw transfer_title_proc(SAMPLE_VOLUME, from, op.temporary[:label_string])
             warning 'Change pipette tip between tubes'
-            check "Using a P20 pipette set to [0 4 0]."
+            check "ADD TEMPLATE Using a P20 pipette set to [0 4 0]."
             note "Add #{SAMPLE_VOLUME}uL from #{from.bold} into each of #{op.temporary[:label_string].bold}. Only open one ligation tube at a time."
             note "Discard pipette tip between each tube."
 
             transfer_image = make_transfer(tubeP, ligation_tubes, 300, "#{SAMPLE_VOLUME}uL", "(Post-PCR P20 pipette)")
             note display_svg(transfer_image, 0.6)
             labels.each do |l|
-              check "Transfer #{SAMPLE_VOLUME}uL from #{from.bold} into #{l}. Discard tip, close cap."
-            end
-          end
+              check "Transfer #{SAMPLE_VOLUME}uL from #{from.bold} into #{l.bold}. Discard tip, close cap."
+            end # labels each
+          end # show do
         else
           show do
             title "Position #{PCR_SAMPLE} #{from.bold} and #{LIGATION_SAMPLE.pluralize(COMPONENTS.length)} #{op.temporary[:label_string].bold} in front of you."
@@ -366,7 +359,7 @@ class Protocol
             image = SVGElement.new(children: [tube, ligation_tubes], boundx: 1000, boundy: tube.boundy)
             image.translate!(50, -30)
             note display_svg(image, 0.75)
-          end
+          end # show do 
           labels.each.with_index do |label, i|
             show do
               raw transfer_title_proc(SAMPLE_VOLUME, from, label)
@@ -377,12 +370,12 @@ class Protocol
               tube = make_tube(opentube, ['PCR Sample'], op.input_tube_label(INPUT), 'small').scale(0.75)
               img = transfer_to_ligation_tubes_with_highlight(tube, i, *op.output_tokens(OUTPUT), COLORS, SAMPLE_VOLUME, "(Post-PCR P2 pipette)")
               note display_svg(img, 0.6)
-            end
-          end
-        end
-      end
-    end
-  end
+            end # show do
+          end # labels.each do
+        end # if else
+      end # ops each do
+    end # gops each do
+  end # add_template
 
   def start_ligation(myops)
     gops = myops.group_by { |op| op.temporary[:input_kit_and_unit] }
