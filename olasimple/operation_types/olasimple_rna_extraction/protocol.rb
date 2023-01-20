@@ -47,8 +47,6 @@ class Protocol
   PER_SAMPLE_COMPONENTS = [LYSIS_BUFFER, SAMPLE_COLUMN, RNA_EXTRACT].freeze
   OUTPUT_COMPONENT = '6'
 
-  CENTRIFUGE_TIME = '1 minute'
-
   # for debugging
   PREV_COMPONENT = 'S'
   PREV_UNIT = ''
@@ -81,16 +79,15 @@ class Protocol
     2.times do
       operations.each { |op| add_sample_to_column(op) }
       centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}", speed: 8000)
+      change_collection_tubes
     end
     
-    change_collection_tubes
-
-    add_wash_1
+    add_wash_1 # E2
     centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}", speed: 8000)
     change_collection_tubes
 
-    add_wash_2
-    centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}", speed: "at least 13000")
+    add_wash_2 # E3
+    centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}", speed: "14000", centrifuge_time: "3 Minutes")
 
     2.times do
       change_collection_tubes # Added March 22 (55)
@@ -381,24 +378,24 @@ class Protocol
   # helper method for simple incubations
   def incubate(samples, time)
     show do
-      title 'Incubate E6 Tubes to ensure full RNA recovery.'
+      title 'Incubate E1 Tubes to ensure full RNA recovery.'
       note "Let <b>#{samples.to_sentence}</b> incubate for <b>#{time}</b> at room temperature."
       check "Set a timer for <b>#{time}</b>"
       note 'Do not proceed until time has elapsed.'
     end
   end
 
-  def centrifuge_columns(flow_instructions: nil, extra_warning: nil, speed: nil)
+  def centrifuge_columns(flow_instructions: nil, extra_warning: nil, speed: nil, centrifuge_time: "1 Minute")
     columns = sample_labels.map { |s| "#{SAMPLE_COLUMN}-#{s}" }
 
     show do
-      title " Centrifuge Columns for #{CENTRIFUGE_TIME}"
+      title " Centrifuge Columns for #{centrifuge_time}"
       warning extra_warning if extra_warning
       warning 'Ensure both tube caps are tightly closed'
       if speed
         note "Set centrifuge to #{speed} RPM"
       end
-      raw centrifuge_proc('Column', columns, CENTRIFUGE_TIME, '', AREA)
+      raw centrifuge_proc('Column', columns, centrifuge_time, '', AREA)
       note display_balance_tubes_svg
       check flow_instructions if flow_instructions
     end
@@ -491,7 +488,8 @@ class Protocol
       ETHANOL_BUFFER_VOLUME,
       from_svg: :ethanol_container_open,
       to_svg: :E1_open,
-      skip_centrifuge: false
+      skip_centrifuge: false,
+      vortex_time: 5
     )
   end
 
