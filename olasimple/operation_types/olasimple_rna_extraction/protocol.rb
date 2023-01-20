@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-# Updated version: March 26, 2022
+# Updated version: January 19, 2023
 needs 'OLASimple/OLAConstants'
 needs 'OLASimple/OLALib'
 needs 'OLASimple/OLAGraphics'
@@ -298,7 +298,7 @@ class Protocol
   end
 
   # helper method for simple transfers in this protocol
-  def transfer_and_vortex(title, from, to, volume_ul, warning: nil, to_svg: nil, from_svg: nil, skip_vortex: false, skip_centrifuge: false, extra_check: nil, vortex_note: nil, centrifuge_note: nil)
+  def transfer_and_vortex(title, from, to, volume_ul, warning: nil, to_svg: nil, from_svg: nil, skip_vortex: false, skip_centrifuge: false, extra_check: nil, vortex_note: nil, centrifuge_note: nil, vortex_time: 2)
 
     pipette, extra_note, setting_instruction = pipette_decision(volume_ul)
    # pipette, extra_note, setting_instruction = "P20", nil, "Set P20 pipette to [0 5 6]"  
@@ -326,7 +326,7 @@ class Protocol
         warning warning if warning
         note display_svg(img, 0.75) if img
         check "Ensure tube caps are tightly shut for #{to.to_sentence}."
-        check "Vortex <b>#{to.to_sentence}</b> for <b>2 seconds, twice</b>." unless skip_vortex
+        check "Vortex <b>#{to.to_sentence}</b> for <b>#{vortex_time} seconds, twice</b>." unless skip_vortex
         check "Centrifuge <b>#{to.to_sentence}</b> for <b>5 seconds</b>." unless skip_centrifuge
         check vortex_note
         check centrifuge_note
@@ -352,7 +352,7 @@ class Protocol
         check "Discard pipette tip into #{WASTE_PRE}."
         check extra_check if extra_check
         check "Ensure tube cap is tightly shut for #{to}."
-        check "Vortex <b>#{to}</b> for <b>2 seconds, twice</b>." unless skip_vortex
+        check "Vortex <b>#{to}</b> for <b>#{vortex_time} seconds, twice</b>." unless skip_vortex
         check "Centrifuge <b>#{to}</b> for <b>5 seconds</b>." unless skip_centrifuge
         check vortex_note
         check centrifuge_note
@@ -407,7 +407,7 @@ class Protocol
   def prepare_lysis_buffers
     show do
       title "Centrifuge the following:" # E0 and E4
-      check "Centrifuge <b>#{DTT}</b> and <b>#{SA_WATER}</b> for <b>5 seconds</b>."
+      check "Centrifuge <b>#{DTT}</b> and <b>#{WASH1}</b> for <b>5 seconds</b>." # E0 and E2
       check "Centrifuge <b>E1-001</b> and <b>E1-002</b> for 5 seconds"
       check "Centrifuge <b>#{WASH2}</b> and <b>#{SA_WATER}</b> for <b>5 seconds</b>." #E3 and E4
     end
@@ -421,7 +421,8 @@ class Protocol
       5.6,
       from_svg: :E0_open_wet,
       to_svg: :E1_open,
-      skip_centrifuge: true
+    #   skip_centrifuge: true
+        skip_centrifuge: false
     )
   end # prepare_lysis_buffers
 
@@ -469,6 +470,7 @@ class Protocol
         from_svg: :sXXX_open,
         to_svg: :E1_open,
         skip_centrifuge: true,
+        vortex_time: 5,
         extra_check: "Close #{from_name} tightly and discard into #{WASTE_PRE}."
       )
     end
@@ -489,7 +491,7 @@ class Protocol
       ETHANOL_BUFFER_VOLUME,
       from_svg: :ethanol_container_open,
       to_svg: :E1_open,
-      skip_centrifuge: true
+      skip_centrifuge: false
     )
   end
 
