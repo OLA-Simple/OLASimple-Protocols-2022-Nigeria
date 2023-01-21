@@ -6,8 +6,7 @@
 # OLASimple Ligation
 # author: Justin Vrana
 # date: March 2018
-# updated version: March 20, 2022
-# updates in progress December 16
+# updated version: January 23, 2023
 ##########################################
 
 needs 'OLASimple/OLAConstants'
@@ -331,7 +330,7 @@ class Protocol
         to_strip_name = "#{op.temporary[:output_unit]}-#{op.temporary[:output_sample]}"
         tubeP = make_tube(opentube, ['PCR Sample'], op.input_tube_label(INPUT), 'small').scale(0.75)
         ligation_tubes = display_ligation_tubes(*op.output_tokens(OUTPUT), COLORS[idx]).translate!(0, -20)
-        # pre_transfer_validation_with_multiple_tries(from, to_strip_name, tubeP, ligation_tubes) # this is the error maybe??
+        # pre_transfer_validation_with_multiple_tries(from, to_strip_name, tubeP, ligation_tubes) # temporarily removing until I debug the error
         if expert_mode
           # All transfers at once...
           show do
