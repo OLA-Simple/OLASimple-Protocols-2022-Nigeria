@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Sample Preparation Updated March 16, 2022 
+# Sample Preparation Updated January 19, 2023
 #
 needs 'OLASimple/OLAConstants'
 needs 'OLASimple/OLAKitIDs'
