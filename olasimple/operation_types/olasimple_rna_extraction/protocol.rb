@@ -360,13 +360,13 @@ class Protocol
   def pipette_decision(volume_ul)
     if volume_ul <= 20
       setting = '[ ' + (volume_ul * 10).round.to_s.rjust(3, '0').split('').join(' ') + ' ]'
-      [P20_PRE, nil, "Set P20 pipette to <b>#{volume_ul} uL</b>"]
+      [P20_PRE, nil, "Set P20 pipette to <b>#{setting} uL</b>"]
     elsif volume_ul <= 200
       setting = '[ ' + volume_ul.round.to_s.rjust(3, '0').split('').join(' ') + ' ]'
-      [P200_PRE, nil, "Set p200 pipette to <b>#{volume_ul} uL</b>"]
+      [P200_PRE, nil, "Set p200 pipette to <b>#{setting} uL</b>"]
     elsif volume_ul <= 1000
       setting = '[ ' + (volume_ul / 10).round.to_s.rjust(3, '0').split('').join(' ') + ' ]'
-      [P1000_PRE, nil, "Set p1000 pipette to <b>#{volume_ul} uL</b>"]
+      [P1000_PRE, nil, "Set p1000 pipette to <b>#{setting} uL</b>"]
     else
       factor = volume_ul.fdiv(1000).ceil
       split_volume = volume_ul.fdiv(factor)
