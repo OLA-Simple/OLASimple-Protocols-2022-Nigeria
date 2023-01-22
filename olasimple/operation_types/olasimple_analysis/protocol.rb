@@ -4,7 +4,7 @@
 #
 # OLASimple Analysis
 # author: Justin Vrana
-# update in progress: December 13, 2022
+# update in progress: January 21, 2023
 # former visual call plus some stuff from detection
 ##########################################
 
@@ -34,6 +34,11 @@ class Protocol
     PREV_UNIT = "D"
     DEBUG_UPLOAD_ID = 4 # make upload, get id for deployed version
     
+    # incoming Item has Data Association for scanned image upload key 
+    # get that image using the key 
+    # output item -- can be same as input item or can be new item
+    # either way, make data assocations for the calls made by the tech
+    
     def main
     
         band_choices = {
@@ -58,6 +63,23 @@ class Protocol
         operations.running.retrieve interactive: false
         # add back in error checks
         debug_setup(operations) # has to happen before temp hash is made
+        
+        if debug
+            operations.each do |op|
+                op.input(INPUT).item.associate(SCANNED_IMAGE_UPLOAD_ID_KEY, DEBUG_UPLOAD_ID)
+            end # each do
+        end # if debug
+        
+        # operations.running.each do |op|
+        #     image_upload_id = op.input(INPUT).item.get(SCANNED_IMAGE_UPLOAD_ID_KEY)
+        #     if image_upload_id.nil?
+        #         op.error(:no_image_attached, "No image was found for item #{op.input(INPUT).item.id} (#{op.input_refs(INPUT)})")
+        #     end # if image nil
+        # end # ops each do
+
+        
+        
+        
         save_temporary_input_values(operations, INPUT)
         introduction
         
@@ -65,7 +87,7 @@ class Protocol
     
         call_instructions
         # make_visual_call(operations.running, band_choices)
-        make_visual_call_test(operations.running, band_choices)
+        make_visual_call_test(operations.running, band_choices, categories)
         conclusion
 
     end #main
@@ -77,13 +99,10 @@ class Protocol
                 kit_num = 'K001'
                 sample_num = sample_num_to_id(i + 1)
                 make_alias(op.input(INPUT).item, kit_num, PREV_UNIT, PREV_COMPONENTS, 'a patient id', sample_num)
-                # op.input(INPUT).item.associate(SCANNED_IMAGE_UPLOAD_ID_KEY, DEBUG_UPLOAD_ID)
-                # make_alias(op.input(INPUT).item, kit_num, PREV_UNIT, PREV_COMPONENTS, 1)
+                op.input(INPUT).item.associate(SCANNED_IMAGE_UPLOAD_ID_KEY, DEBUG_UPLOAD_ID) # make data association for input if testing
             end #each with index
         end # if debug
     end #debug set up
-
-# op.temporary is {:patient=>1, :input_kit=>"K001", :input_unit=>"D", :input_component=>["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"], :input_sample=>"", :input_kit_and_unit=>"K001D"}
 
     def save_user ops
         ops.each do |op|
@@ -94,10 +113,12 @@ class Protocol
 
     def my_temp_test_function(ops)
         ops.each_with_index do |op, idx|
+            image_upload_id = op.input(INPUT).item.get(SCANNED_IMAGE_UPLOAD_ID_KEY)
             show do
                 note "This is my test function"
                 note "op.temporary is #{op.temporary}"
                 note "input is #{op.input(INPUT).item}"
+                note "upload id is #{image_upload_id}"
             end
         end
     end
@@ -128,7 +149,7 @@ class Protocol
         end
     end # end call_instructions
     
-    def make_visual_call_test(ops, band_choices)
+    def make_visual_call_test(ops, band_choices, category_hash)
         
         # for each op, display that image and one tenth of the strip upload and get choices 
         ops.each do |op|
@@ -140,7 +161,8 @@ class Protocol
             test_colors = ["red", "green","yellow", "blue", "purple", "gray"]
         
             # make the reference image with the codon labels
-            grid = SVGGrid.new(6, 1, 90, 10)
+            # grid = SVGGrid.new(6, 1, 90, 10)
+            grid = SVGGrid.new(6, 1, 90, 0)
         
             #self.two_labels("#{unit}#{component}", "#{sample}")
         
@@ -166,25 +188,23 @@ class Protocol
                 bands.each do |band|
                     grid.add(band, idx, 0) # then this is just adding the lines or no adding them, as the result went 
                 end # add bands
-                
-                
             end # band keys do
             
-                reference_img = SVGElement.new(children: [grid], boundx: PREV_COMPONENTS.size * 100, boundy: 350)
-                reference_img.translate!(15)
+            reference_img = SVGElement.new(children: [grid], boundx: PREV_COMPONENTS.size * 100, boundy: 350)
+            reference_img.translate!(15)
         
             op.temporary[:results] = []
             
-            upload = Upload.find(4)
-            show do
-                note "in visual calls"
-                note "kit is #{this_kit}"
-                note "unit is #{this_unit}"
-                note "sample is #{this_sample}"
-            end # test show do 
+            # upload = Upload.find(4)
+            image_upload_id = op.input(INPUT).item.get(SCANNED_IMAGE_UPLOAD_ID_KEY)
+            
+            # if image_upload_id.nil?
+        #   op.error(:no_image_attached, "No image was found for item #{op.input(INPUT).item.id} (#{op.input_refs(INPUT)})")
+        #     end # if image nil
+            upload = Upload.find(image_upload_id)
             
             PREV_COMPONENTS.each_with_index do |this_component, idx|
-                alias_label = op.input_refs(INPUT)[idx]
+                alias_label = op.input_refs(INPUT)[idx] # e.g. D1-001
                 # note display_svg(reference_img)
                 tech_choice = show do
                     title "Compare #{STRIP} #{alias_label} with the images below."
@@ -193,8 +213,8 @@ class Protocol
                     # warning "<h2>After you click OK, you cannot change your call."
                     note "Signal of all the lines does not have to be equally strong. Flow control signal is always the strongest."
                     select band_choices.keys.map {|k| k.to_s}, var: :strip_choice, label: "Choose:", default: 0
-                    note display_svg(reference_img)
                     raw display_strip_section(upload, idx, PREV_COMPONENTS.length, "25%")
+                    note display_svg(reference_img)
                 end # tech choice show do
                 
             if debug
@@ -209,31 +229,33 @@ class Protocol
                 # tech_choice {:strip_choice=>"M", :timestamp=>1671042324000}
             end # display tech choice show do
             
-                        # current_choice = tech_choice[:strip_choice]
+            current_choice = tech_choice[:strip_choice]
             
             # # create data associations for item
-            # op.input(INPUT).item.associate(make_call_key(alias_label), current_choice)
+            op.input(INPUT).item.associate(make_call_key(alias_label), current_choice)
             
             # # create data associations for operation -- maybe not needed here 
             # op.associate(make_call_key(alias_label), current_choice)
             
             # # op.associate(make_call_category_key(alias_label), category_hash[current_choice.to_sym])
-            # # op.input(INPUT).item.associate(make_call_category_key(alias_label), category_hash[current_choice.to_sym])
+            op.input(INPUT).item.associate(make_call_category_key(alias_label), category_hash[current_choice.to_sym])
             
-            
+            show do
+                title "TESTING"
+                note "item associations are now #{op.input(INPUT).item.associations}"
+            end
             
             end # prev components 
             
         end # ops each do
     end # make call test
     
-    
-    
-  
+    # make key for data association, :D1-001_tech_call
     def make_call_key alias_label
         "#{alias_label}_tech_call".to_sym
     end
 
+    # make key for data assocation, :D1-001_tech_call_category
     def make_call_category_key alias_label
         "#{alias_label}_tech_call_category".to_sym
     end
@@ -350,3 +372,4 @@ end #protocol
 #         end #PREV_COMPONENTS
 #       end # ops each with index
 #   end # make visual call method
+
