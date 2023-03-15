@@ -84,25 +84,21 @@ module OLAKits
             },
             "Number of Samples" => 2,
             "Number of Sub Packages" => 4,
-            "Stop Rehydration Volume" => 67,
-            "Gold Rehydration Volume" => 670,
+            "Stop Rehydration Volume" => 96,
+            "Gold Rehydration Volume" => 1032,
             "Gold to Strip Volume" => 40,
             "Sample to Strip Volume" => 24,
             "Stop to Sample Volume" => 4,
             "Sample Volume" => 2.4,
-            "Mutation Labels" => [
-                "K65R",
-                "70E",
-                "K103N",
-                "V106M",
-                "Y181C",
-                "M184V",
-                "G190A",
+        },
+        
+        "analysis" => {
+             "Mutation Labels" => [
+                "M41L", "K65R", "L74I", "K103N", "Y115F", "Y181C", "M184V", "G190A", "T215F", "T215Y"
             ],
-            "Mutation Colors" => ["red", "green","yellow", "blue", "purple", "white", "gray"]
-
+            "Mutation Colors" => ["red", "green","yellow", "blue", "purple", "white", "gray", "red", "green", "yellow"]
         }
-
     }
   end
 end
+
