@@ -20,18 +20,20 @@ class Protocol
     include OLAGraphics
     include JobComments
     include OLAKitIDs
-    
-    COLORS = ["red", "green","yellow", "blue", "purple", "white", "gray", "red", "yellow", "green"]
-    PREV_COMPONENTS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
+
+    PACK_HASH = ANALYSIS_UNIT
+    MUTATION_LABELS = PACK_HASH['Mutation Labels']
+    MUTATION_COLORS = PACK_HASH['Mutation Colors']    
+
+    PREV_PACK = DETECTION_UNIT
+    PREV_COMPONENTS = PREV_PACK["Components"]["strips"]
+    PREV_UNIT = "D"
+
     POSITIVE = "positive"
     NEGATIVE = "negative"
     
     INPUT = "Detection Strip"
-#   AREA = POST_PCR
-#   PACK_HASH = ANALYSIS_UNIT
-    MUTATION_LABELS =  ["M41L", "K65R", "L74I", "K103N", "Y115F", "Y181C", "M184V", "G190A", "T215F", "T215Y"]
-#   PREV_COMPONENTS = PACK_HASH["Components"]["strips"]
-    PREV_UNIT = "D"
+    
     DEBUG_UPLOAD_ID = 4 # make upload, get id for deployed version
     
     # incoming Item has Data Association for scanned image upload key 
@@ -76,9 +78,6 @@ class Protocol
         #         op.error(:no_image_attached, "No image was found for item #{op.input(INPUT).item.id} (#{op.input_refs(INPUT)})")
         #     end # if image nil
         # end # ops each do
-
-        
-        
         
         save_temporary_input_values(operations, INPUT)
         introduction
@@ -87,7 +86,7 @@ class Protocol
     
         call_instructions
         # make_visual_call(operations.running, band_choices)
-        make_visual_call_test(operations.running, band_choices, categories)
+        make_visual_call(operations.running, band_choices, categories)
         show_results_table(operations.running)
         conclusion
 
@@ -150,7 +149,7 @@ class Protocol
         end
     end # end call_instructions
     
-    def make_visual_call_test(ops, band_choices, category_hash)
+    def make_visual_call(ops, band_choices, category_hash)
         
         # for each op, display that image and one tenth of the strip upload and get choices 
         ops.each do |op|
