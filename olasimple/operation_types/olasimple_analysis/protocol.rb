@@ -82,10 +82,9 @@ class Protocol
         save_temporary_input_values(operations, INPUT)
         introduction
         
-        my_temp_test_function(operations.running)
+        # my_temp_test_function(operations.running)
     
         call_instructions
-        # make_visual_call(operations.running, band_choices)
         make_visual_call(operations.running, band_choices, categories)
         show_results_table(operations.running)
         conclusion
@@ -111,17 +110,17 @@ class Protocol
         end
     end
 
-    def my_temp_test_function(ops)
-        ops.each_with_index do |op, idx|
-            image_upload_id = op.input(INPUT).item.get(SCANNED_IMAGE_UPLOAD_ID_KEY)
-            show do
-                note "This is my test function"
-                note "op.temporary is #{op.temporary}"
-                note "input is #{op.input(INPUT).item}"
-                note "upload id is #{image_upload_id}"
-            end
-        end
-    end
+    # def my_temp_test_function(ops)
+    #     ops.each_with_index do |op, idx|
+    #         image_upload_id = op.input(INPUT).item.get(SCANNED_IMAGE_UPLOAD_ID_KEY)
+    #         show do
+    #             note "This is my test function"
+    #             note "op.temporary is #{op.temporary}"
+    #             note "input is #{op.input(INPUT).item}"
+    #             note "upload id is #{image_upload_id}"
+    #         end
+    #     end
+    # end
     
     def introduction
         show do
@@ -157,7 +156,7 @@ class Protocol
             this_unit = op.temporary[:input_unit]
             this_sample = op.temporary[:input_sample]
             
-            band_keys = ["M", "N", "O", "P", "Q", "R"]
+            band_keys = band_choices.keys
             test_colors = ["red", "green","yellow", "blue", "purple", "gray"]
         
             # make the reference image with the codon labels
@@ -218,12 +217,12 @@ class Protocol
                 end # tech choice show do
                 
             if debug
-                tech_choice[:strip_choice] = band_choices.keys[idx % 5]
+                tech_choice[:strip_choice] = band_choices.keys[idx % 5].to_s
             end # debug 
 
             # op.temporary[:results].append(tech_choice[:strip_choice])
             op.temporary[:results][:choice_letter].append(tech_choice[:strip_choice])
-            op.temporary[:results][:choice_category].append(category_hash[tech_choice[:strip_choice]])
+            op.temporary[:results][:choice_category].append(category_hash[tech_choice[:strip_choice].to_sym])
             
             show do
                 note "Tech Chose #{tech_choice}"
