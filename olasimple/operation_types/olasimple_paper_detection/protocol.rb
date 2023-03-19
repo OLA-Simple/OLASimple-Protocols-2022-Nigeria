@@ -6,8 +6,7 @@
 # OLASimple Detection
 # author: Justin Vrana
 # date: March 2018
-# updated version: March 28, 2022
-# in progress: December 16, 2022
+# updated version: March 19, 2023
 ##########################################
 
 needs 'OLASimple/OLAConstants'
@@ -55,7 +54,6 @@ class Protocol
   GOLD_TO_STRIP_VOLUME = PACK_HASH['Gold to Strip Volume']
 
   PREV_COMPONENTS = PACK_HASH['Components']['strips']
-  MUTATION_LABELS = PACK_HASH['Mutation Labels']
 
   PREV_UNIT = 'L'
   MATERIALS = [
@@ -71,7 +69,7 @@ class Protocol
 
   POSITIVE = 'positive'
   NEGATIVE = 'negative'
-  DEBUG_UPLOAD_ID = 1
+  DEBUG_UPLOAD_ID = 4
   
 
   ##########################################
@@ -362,9 +360,9 @@ class Protocol
 
   def short_timer
     show do
-      title 'Set timer for 6 minutes'
-      check 'Set a timer for 6 minutes. This will notify you when the thermocycler is done.'
-      timer initialize: { minute: 6 }
+      title 'Set timer for 5 minutes'
+      check 'Set a timer for 5 minutes. This will notify you when the thermocycler is done.'
+      timer initialize: { minute: 5 }
       check 'Click the "<b>play</b>" button on the left. Proceed to next step now.'
     end
   end
@@ -410,23 +408,20 @@ class Protocol
         
         svg_both = display_panel_and_tubes(kit, panel_unit, tube_unit, PREV_COMPONENTS, sample, COLORS[i]).translate!(50).scale!(0.8)
     
-        # p = proc do
-        #   title "Arrange #{STRIPS} and tubes for sample #{op.temporary[:input_sample]}" # for sample 1?
-        #   note "Place the #{STRIPS} #{to_name} and #{LIGATION_SAMPLE.pluralize(PREV_COMPONENTS.length)} #{from_name} as shown in the picture:"
-        #   note "Scan in #{to_name} and #{from_name}"
-        #   note display_svg(svg_both)
-        # end # end proc do
-        # content = ShowBlock.new(self).run(&p)
-        # pre_transfer_validation_with_multiple_tries(from_name, to_name, svg_both, content_override: content)
-        #pre_transfer_validation_with_multiple_tries(from_name, to_name, from_svg=nil, to_svg=nil, content_override: nil)
-        # (from_name, to_name, from_svg, to_svg)
-        
-        show do
+        p = proc do
           title "Arrange #{STRIPS} and tubes for sample #{op.temporary[:input_sample]}" # for sample 1?
           note "Place the #{STRIPS} #{to_name} and #{LIGATION_SAMPLE.pluralize(PREV_COMPONENTS.length)} #{from_name} as shown in the picture:"
           note "Scan in #{to_name} and #{from_name}"
-          note display_svg(svg_both)
-        end # end show do test
+        end # end proc do
+        content = ShowBlock.new(self).run(&p)
+        pre_transfer_validation_with_multiple_tries(from_name, to_name, svg_both, content_override: content)
+     
+        
+        # show do
+        #   title "Arrange #{STRIPS} and tubes for sample #{op.temporary[:input_sample]}" # for sample 1?
+        #   note "Place the #{STRIPS} #{to_name} and #{LIGATION_SAMPLE.pluralize(PREV_COMPONENTS.length)} #{from_name} as shown in the picture:"
+        #   note display_svg(svg_both)
+        # end # end show do test
         
 
         # inner iteration should start here to show each half separately
@@ -602,12 +597,15 @@ class Protocol
           end
 
           op.temporary[SCANNED_IMAGE_UPLOAD_KEY] = Upload.find(DEBUG_UPLOAD_ID) if debug # false upload if debug
+          
+
 
           confirmed = show do
             title "Confirm image labels say #{op.temporary[:label_string].bold}"
             select %w[yes no], var: 'confirmed', label: 'Do the image labels and your image match?', default: 0
             img = display_strip_panel(*op.output_tokens(OUTPUT), COLORS[idx]).g
             img.boundy = 50
+            img.boundx = 750
             note display_svg(img, 0.75)
             raw display_upload(op.temporary[SCANNED_IMAGE_UPLOAD_KEY])
           end
@@ -624,6 +622,7 @@ class Protocol
 
         op.associate(SCANNED_IMAGE_UPLOAD_ID_KEY, op.temporary[SCANNED_IMAGE_UPLOAD_KEY].id)
         op.output(OUTPUT).item.associate(SCANNED_IMAGE_UPLOAD_ID_KEY, op.temporary[SCANNED_IMAGE_UPLOAD_KEY].id)
+        
       end
     end
   end
@@ -665,3 +664,4 @@ class Protocol
   end
 
 end # protocol
+
