@@ -106,7 +106,7 @@ class Protocol
     stop_ligation_product(sorted_ops.running, expert_mode) # add stop mix 
     short_timer
     rehydrate_gold_solution(sorted_ops.running)
-    # display_detection_strip_diagram
+    display_detection_strip_diagram
     
     prepare_to_add_ligation_product(sorted_ops.running)
     add_ligation_product_to_strips(sorted_ops.running)
@@ -371,6 +371,7 @@ class Protocol
     show do
       title "Review #{STRIP} diagram"
       note 'In the next steps you will be adding ligation mixtures followed by the gold solutions to the detection strips.'
+      note 'The Diagram shows a close up of one strip.'
       note 'You will pipette into the <b>Port</b>. After pipetting, you should see the <b>Reading Window</b> become wet after a few minutes.'
       warning 'Do not add liquid directly to the <b>Reading Window</b>'
       note display_svg(detection_strip_diagram, 0.75)
@@ -417,13 +418,6 @@ class Protocol
         pre_transfer_validation_with_multiple_tries(from_name, to_name, svg_both, content_override: content)
      
         
-        # show do
-        #   title "Arrange #{STRIPS} and tubes for sample #{op.temporary[:input_sample]}" # for sample 1?
-        #   note "Place the #{STRIPS} #{to_name} and #{LIGATION_SAMPLE.pluralize(PREV_COMPONENTS.length)} #{from_name} as shown in the picture:"
-        #   note display_svg(svg_both)
-        # end # end show do test
-        
-
         # inner iteration should start here to show each half separately
         left_components = PREV_COMPONENTS[0..4]
         right_components = PREV_COMPONENTS[5..-1]
@@ -460,8 +454,6 @@ class Protocol
                 panel = display_strip_panel(*output_tokens, COLORS[i][5..-1])
             end
     
-        #   tubes = display_ligation_tubes(*op.input_tokens(INPUT), COLORS, (0..PREV_COMPONENTS.length - 1).to_a, [], 90)
-        #   panel = display_strip_panel(*op.output_tokens(OUTPUT), COLORS)
             tubes.align_with(panel, 'center-bottom')
             tubes.align!('center-top')
             tubes.translate!(50, -50)
@@ -664,4 +656,3 @@ class Protocol
   end
 
 end # protocol
-
