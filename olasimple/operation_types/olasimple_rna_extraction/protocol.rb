@@ -76,11 +76,15 @@ class Protocol
     prepare_wash_buffers
     add_ethanol
 
-    2.times do
+    # 2.times do
+      show do
+          title "CENTRIFUGE AND CHANGE RUN BEFORE ADDING WASH 1 and 2"
+          note "THIS HAD PREVIOUSLY BEEN RUN TWICE -- check that this is correct "
+      end
       operations.each { |op| add_sample_to_column(op) }
       centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}", speed: 8000)
       change_collection_tubes
-    end
+    # end
     
     add_wash_1 # E2
     centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}", speed: 8000)
@@ -89,10 +93,14 @@ class Protocol
     add_wash_2 # E3
     centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}", speed: "14000", centrifuge_time: "3 Minutes")
 
-    2.times do
-      change_collection_tubes # Added March 22 (55)
+    # 2.times do
+      show do
+          title "CHANGE AND CENTRIFUGE AFTER ADDING WASH BUFFERS"
+          note "REMOVED CHANGE TUBES STEP HERE"
+          note "REMOVED ONE CENTRIFUGE STEP"
+      end
       centrifuge_columns(flow_instructions: '<b>DO NOT DISCARD FLOW THROUGH</b>', extra_warning: 'DO NOT DISCARD FLOW THROUGH', speed: 14000)
-    end
+    # end
 
     transfer_column_to_e6 # 53
     elute # 54
@@ -403,6 +411,7 @@ class Protocol
 
   def prepare_lysis_buffers
     show do
+      title "PREPARE LYSIS BUFFERS"
       title "Centrifuge the following:" # E0 and E4
       check "Centrifuge <b>#{DTT}</b> and <b>#{WASH1}</b> for <b>5 seconds</b>." # E0 and E2
       check "Centrifuge <b>E1-001</b> and <b>E1-002</b> for 5 seconds"
@@ -425,6 +434,9 @@ class Protocol
 
    def prepare_wash_buffers
 #   prepare wash buffer 2 with ethanol
+      show do
+          title "PREPARE WASH BUFFERS"
+      end
       transfer_and_vortex(
         "Prepare Buffers #{WASH1} and #{WASH2}", # E2 and E3
         ETHANOL,
@@ -453,6 +465,9 @@ class Protocol
   SAMPLE_VOLUME = 140 
   # transfer plasma Samples into lysis buffer and incubate
   def lyse_samples
+    show do
+        title "LYSE SAMPLES"
+    end
     operations.each do |op|
       from_name = op.input_ref(INPUT).to_s
       to_name = "#{LYSIS_BUFFER}-#{op.temporary[:output_sample]}"
@@ -474,12 +489,18 @@ class Protocol
   end
 
   def incubate_lysed_samples(ops)
+    show do
+        title "INCUBATE LYSED SAMPLES"
+    end
     lysed_samples = ops.map { |op| "#{LYSIS_BUFFER}-#{op.temporary[:output_sample]}" }
     incubate(lysed_samples, '10 minutes')
   end
 
   ETHANOL_BUFFER_VOLUME = 560 
   def add_ethanol
+    show do
+        title "ADD ETHANOL"
+    end
     lysis_buffers = operations.map { |op| "#{LYSIS_BUFFER}-#{op.temporary[:output_sample]}" }
     transfer_and_vortex(
       "Add #{ETHANOL} to samples #{lysis_buffers.to_sentence}",
@@ -495,6 +516,9 @@ class Protocol
 
   COLUMN_VOLUME = 630 
   def add_sample_to_column(op)
+    show do
+        title "ADD SAMPLE TO COLUMN"
+    end
     from = "#{LYSIS_BUFFER}-#{op.temporary[:output_sample]}"
     to = "#{SAMPLE_COLUMN}-#{op.temporary[:output_sample]}"
     from_svg = draw_svg(:E1_closed, svg_label: from.sub('-', "\n"))
@@ -519,11 +543,17 @@ class Protocol
   end
 
   def add_wash_1 #E2
+    show do
+        title "ADD WASH 1"
+    end
     columns = operations.map { |op| column = "#{SAMPLE_COLUMN}-#{op.temporary[:output_sample]}" }
     transfer_carefully(WASH1, columns, 500, from_type: 'Wash Buffer E2', to_type: 'column', from_svg: :E2_open, to_svg: :E5_full_open_w_empty_collector)
   end
 
   def add_wash_2 #E3
+    show do
+        title "ADD WASH 2"
+    end
     columns = operations.map { |op| column = "#{SAMPLE_COLUMN}-#{op.temporary[:output_sample]}" }
     transfer_carefully(WASH2, columns, 500, from_type: 'Wash Buffer E3', to_type: 'column', from_svg: :E3_open, to_svg: :E5_full_open_w_empty_collector)
   end
@@ -657,3 +687,4 @@ class Protocol
     end
   end
 end
+
