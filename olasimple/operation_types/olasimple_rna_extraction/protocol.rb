@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-# Updated version: January 19, 2023
+# Updated version: March 26, 2023
 needs 'OLASimple/OLAConstants'
 needs 'OLASimple/OLALib'
 needs 'OLASimple/OLAGraphics'
@@ -107,7 +107,7 @@ class Protocol
 
     incubate(sample_labels.map { |s| "#{SAMPLE_COLUMN}-#{s}" }, '1 minute')
 
-    centrifuge_columns(flow_instructions: '<b>DO NOT DISCARD FLOW THROUGH</b>', extra_warning: 'DO NOT DISCARD FLOW THROUGH', speed: "at least 13000")
+    centrifuge_columns(flow_instructions: '<b>DO NOT DISCARD FLOW THROUGH</b>', extra_warning: 'DO NOT DISCARD FLOW THROUGH', speed: 8000)
 
     finish_up
     disinfect
@@ -622,7 +622,8 @@ class Protocol
       title 'Add Elution Buffer'
       warning 'Add buffer to center of columns'
       # Need to change this so it says to use E6-001 and E6-002
-      columns = operations.map { |op| column = "#{SAMPLE_COLUMN}-#{op.temporary[:output_sample]}" }
+      columns = operations.map { |op| column = "#{RNA_EXTRACT}-#{op.temporary[:output_sample]}" }
+    #   columns = operations.map { |op| column = "#{SAMPLE_COLUMN}-#{op.temporary[:output_sample]}" }
       note display_elution_addition
       columns.each do |column|
         check "Add <b>50uL</b> from <b>#{SA_WATER}</b> to column <b>#{column}</b>"
@@ -649,8 +650,8 @@ class Protocol
     show do
       title 'Store Items'
       extract_tubes = sample_labels.map { |s| "#{RNA_EXTRACT}-#{s}" }
-      note "Store <b>#{extract_tubes.to_sentence}</b> in the fridge on a cold rack if the amplification module will proceed immediately."
-      note "Store <b>#{extract_tubes.to_sentence}</b> in -80C freezer if proceeding with the amplification module later."
+      note "Store <b>#{extract_tubes.to_sentence}</b> in the fridge on a cold rack if the RT module will proceed immediately."
+      note "Store <b>#{extract_tubes.to_sentence}</b> in -80C freezer if proceeding with the RT module later."
     end
   end
 
