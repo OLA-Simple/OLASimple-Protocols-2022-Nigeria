@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Sample Preparation Updated January 19, 2023
+# Sample Preparation Updated March 27, 2023
 #
 needs 'OLASimple/OLAConstants'
 needs 'OLASimple/OLAKitIDs'
@@ -157,7 +157,7 @@ class Protocol
       img = kit_image(ops)
       check 'Check that the following are in the pack:'
       note display_svg(img, 0.75)
-      check 'Discard the packaging material.'
+    #   check 'Discard the packaging material.'
     end
   end
 
@@ -324,3 +324,4 @@ class Protocol
     tube.translate!(0,70)
   end
 end
+
