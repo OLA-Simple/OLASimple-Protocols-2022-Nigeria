@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-# RT module updated January 19, 2023
+# RT module updated March 27, 2023
 needs 'OLASimple/OLAConstants'
 needs 'OLASimple/OLALib'
 needs 'OLASimple/OLAGraphics'
@@ -98,6 +98,7 @@ class Protocol
         centrifuge_samples(operations.running)
         transfer_samples(operations.running)
         start_thermocycler(operations.running)
+        store(operations.running)
         
         accept_comments
         conclusion(sorted_ops)
@@ -181,7 +182,7 @@ class Protocol
             img = SVGElement.new(children: [grid], boundx: 1000, boundy: 300)
             check 'Check that the following are in the pack:'
             note display_svg(img, 0.75)
-            check 'Discard the packaging material.'
+            # check 'Discard the packaging material.'
         end #show_open_package do
       end #grouped by unit
     end #method
@@ -238,7 +239,7 @@ class Protocol
         samples = ops.map { |op| op.output(OUTPUT).item }
         sample_refs = samples.map { |sample| ref(sample) }
 
-        vortex_and_centrifuge_helper("RT TUBES",
+        vortex_and_centrifuge_helper("RT Tubes",
                                      sample_refs,
                                      VORTEX_TIME, CENTRIFUGE_TIME,
                                      'to mix.', 'to pull down liquid', AREA, mynote = nil, vortex_type = "Pulse")
@@ -263,6 +264,14 @@ class Protocol
           op.output(OUTPUT).item.move THERMOCYCLER
         end # ops each do
     end # method 
+    
+    def store(ops)
+        extraction_tubes = ops.map { |op| ref(op.input(INPUT).item) }
+        show do
+            title 'Store Items'
+            note "Either return #{extraction_tubes[0]} and #{extraction_tubes[1]} to -20C Freezer or Discard"
+        end # show do
+    end # store
     
     
   #######################################
