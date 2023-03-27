@@ -99,7 +99,7 @@ class Protocol
           note "REMOVED CHANGE TUBES STEP HERE"
           note "REMOVED ONE CENTRIFUGE STEP"
       end
-      centrifuge_columns(flow_instructions: '<b>DO NOT DISCARD FLOW THROUGH</b>', extra_warning: 'DO NOT DISCARD FLOW THROUGH', speed: 14000)
+    #   centrifuge_columns(flow_instructions: '<b>DO NOT DISCARD FLOW THROUGH</b>', extra_warning: 'DO NOT DISCARD FLOW THROUGH', speed: 14000)
     # end
 
     transfer_column_to_e6 # 53
@@ -386,7 +386,7 @@ class Protocol
   # helper method for simple incubations
   def incubate(samples, time)
     show do
-      title 'Incubate E1 Tubes to ensure full RNA recovery.'
+      title 'Incubate E5 Tubes to ensure full RNA recovery.'
       note "Let <b>#{samples.to_sentence}</b> incubate for <b>#{time}</b> at room temperature."
       check "Set a timer for <b>#{time}</b>"
       note 'Do not proceed until time has elapsed.'
