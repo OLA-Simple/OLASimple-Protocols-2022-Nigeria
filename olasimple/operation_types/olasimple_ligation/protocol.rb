@@ -6,7 +6,7 @@
 # OLASimple Ligation
 # author: Justin Vrana
 # date: March 2018
-# updated version: January 23, 2023
+# updated version: March 27, 2023
 ##########################################
 
 needs 'OLASimple/OLAConstants'
@@ -380,7 +380,7 @@ class Protocol
     gops = myops.group_by { |op| op.temporary[:input_kit_and_unit] }
     ops = gops.map { |_unit, ops| ops }.flatten # organize by unit
 
-    add_to_thermocycler('sample', ops.length * COMPONENTS.length, LIG_CYCLE, ligation_cycle_table, 'Ligation')
+    add_to_thermocycler('sample', ops.length * COMPONENTS.length, LIG_CYCLE, ligation_cycle_table, 'Ligation', note = "for 24 uL")
 
     show do
       title 'Set a timer for 1 Hour'
