@@ -211,6 +211,7 @@ class Protocol
 
       show_open_package(kit, THIS_UNIT, NUM_SUB_PACKAGES) do
         note "Check that there are the following tubes and #{STRIPS}:"
+        note "Strips will be in one connected cassette, not separated as shown below."
         note display_svg(img, 1.0)
       end
     end
@@ -355,7 +356,7 @@ class Protocol
     t.add_column('STEP', ['Initial Melt', 'Annealing'])
     t.add_column('TEMP', %w[95C 37C])
     t.add_column('TIME', ['30s', '4 min'])
-    add_to_thermocycler('tube', myops.length * PREV_COMPONENTS.length, STOP_CYCLE, t, 'Stop Cycle')
+    add_to_thermocycler('tube', myops.length * PREV_COMPONENTS.length, STOP_CYCLE, t, 'Stop Cycle', note = "for 28 uL")
   end # stop ligation
 
   def short_timer
