@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Sample Preparation Updated March 27, 2023
+# Sample Preparation Updated March 29, 2023
 #
 needs 'OLASimple/OLAConstants'
 needs 'OLASimple/OLAKitIDs'
@@ -62,6 +62,7 @@ class Protocol
       _, expected_plasma_samples = plasma_tubes(ops)
       sample_validation_with_multiple_tries(expected_plasma_samples)
       wait_for_thaw
+      vortex_and_centrifuge_plasma
       transfer_plasma(ops)
       remove_outer_layer
       disinfect
@@ -187,12 +188,20 @@ class Protocol
 
   def wait_for_thaw
     show do
-      title 'Wait for Plasma to thaw'
+      title 'Wait for Plasma to Thaw.'
       note 'Let plasma sit at room temperature to thaw for 5 minutes.'
       check 'Set a timer.'
       note 'Built in timer is available in the top left.'
-      note 'Plasma should be completely thawed and mixed before pipetting to ensure concentration of virus is homogeneous.'
+      note 'Make sure plasma is completely thawed before moving on to the next step.'
     end
+  end
+  
+  def vortex_and_centrifuge_plasma
+      show do
+          title 'Vortex and Centrifuge Thawed Plasma Samples to Ensure Concentration of Virus is Homogenous'
+          check 'Vortex samples for 5 minutes.'
+          check 'Centrifuge samples for 5 minutes.'
+      end
   end
 
   def transfer_plasma(ops)
