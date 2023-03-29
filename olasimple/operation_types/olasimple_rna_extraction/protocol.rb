@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-# Updated version: March 26, 2023
+# Updated version: March 29, 2023
 needs 'OLASimple/OLAConstants'
 needs 'OLASimple/OLALib'
 needs 'OLASimple/OLAGraphics'
@@ -76,15 +76,15 @@ class Protocol
     prepare_wash_buffers
     add_ethanol
 
-    # 2.times do
+    2.times do
       show do
           title "CENTRIFUGE AND CHANGE RUN BEFORE ADDING WASH 1 and 2"
-          note "THIS HAD PREVIOUSLY BEEN RUN TWICE -- check that this is correct "
+          note "READDED SECOND RUN OF THESE STEPS -- check that this is correct "
       end
       operations.each { |op| add_sample_to_column(op) }
       centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}", speed: 8000)
       change_collection_tubes
-    # end
+    end
     
     add_wash_1 # E2
     centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}", speed: 8000)
@@ -105,7 +105,7 @@ class Protocol
     transfer_column_to_e6 # 53
     elute # 54
 
-    incubate(sample_labels.map { |s| "#{SAMPLE_COLUMN}-#{s}" }, '1 minute')
+    incubate(sample_labels.map { |s| "#{SAMPLE_COLUMN}-#{s}" }, '1 minute', tube_type = 'E5')
 
     centrifuge_columns(flow_instructions: '<b>DO NOT DISCARD FLOW THROUGH</b>', extra_warning: 'DO NOT DISCARD FLOW THROUGH', speed: 8000)
 
@@ -302,100 +302,8 @@ class Protocol
     end
   end
 
-  # helper method for simple transfers in this protocol
-  def transfer_and_vortex(title, from, to, volume_ul, warning: nil, to_svg: nil, from_svg: nil, skip_vortex: false, skip_centrifuge: false, extra_check: nil, vortex_note: nil, centrifuge_note: nil, vortex_time: 2)
-
-    pipette, extra_note, setting_instruction = pipette_decision(volume_ul)
-   # pipette, extra_note, setting_instruction = "P20", nil, "Set P20 pipette to [0 5 6]"  
-    
-    if to.is_a?(Array) # MULTI TRANSFER
-      img = nil
-      if from_svg && to_svg
-        from_component, from_sample_num = from.split('-')
-        from_label = from_component != ETHANOL && from_component != GuSCN_WASTE ? from.split('-').join("\n") : ''
-        from_svg_rendered = draw_svg(from_svg, svg_label: from_label)
-        to_labels = to.map { |t| t.split('-').join("\n") }
-        to_svgs_rendered = to_labels.map.with_index { |to_label, i| draw_svg(to_svg, svg_label: to_label).translate!(130 * i, 0) }
-        to_svg_final = SVGElement.new(children: to_svgs_rendered, boundx: 300, boundy: 220)
-        img = make_transfer(from_svg_rendered, to_svg_final, 300, "#{volume_ul}ul", "(#{pipette})")
-      end
-      show do
-        title title
-        check setting_instruction
-        to.each do |t|
-          check "Transfer <b>#{volume_ul}uL</b> of <b>#{from}</b> into <b>#{t}</b> using a #{pipette} pipette."
-          note extra_note if extra_note
-          check "Discard pipette tip into #{WASTE_PRE}."
-          check extra_check if extra_check
-        end
-        warning warning if warning
-        note display_svg(img, 0.75) if img
-        check "Ensure tube caps are tightly shut for #{to.to_sentence}."
-        check "Vortex <b>#{to.to_sentence}</b> for <b>#{vortex_time} seconds, twice</b>." unless skip_vortex
-        check "Centrifuge <b>#{to.to_sentence}</b> for <b>5 seconds</b>." unless skip_centrifuge
-        check vortex_note
-        check centrifuge_note
-      end
-    else # SINGLE TRANSFER
-      from_component, from_sample_num = from.split('-')
-      to_component, to_sample_num = to.split('-')
-      if from_svg && to_svg
-        from_label = from_component != ETHANOL && from_component != GuSCN_WASTE ? [from_component, from_sample_num].join("\n") : ''
-        from_svg = draw_svg(from_svg, svg_label: from_label)
-        to_label = to_component != ETHANOL && to_component != GuSCN_WASTE ? [to_component, to_sample_num].join("\n") : ''
-        to_svg = draw_svg(to_svg, svg_label: to_label)
-        img = make_transfer(from_svg, to_svg, 300, "#{volume_ul}ul", "(#{pipette})")
-      end
-
-      show do
-        title title
-        check setting_instruction
-        check "Transfer <b>#{volume_ul}uL</b> of <b>#{from}</b> into <b>#{to}</b> using a #{pipette} pipette."
-        note extra_note if extra_note
-        warning warning if warning
-        note display_svg(img, 0.75) if img
-        check "Discard pipette tip into #{WASTE_PRE}."
-        check extra_check if extra_check
-        check "Ensure tube cap is tightly shut for #{to}."
-        check "Vortex <b>#{to}</b> for <b>#{vortex_time} seconds, twice</b>." unless skip_vortex
-        check "Centrifuge <b>#{to}</b> for <b>5 seconds</b>." unless skip_centrifuge
-        check vortex_note
-        check centrifuge_note
-      end
-    end
-  end
-
-  def pipette_decision(volume_ul)
-    if volume_ul <= 20
-      setting = '[ ' + (volume_ul * 10).round.to_s.rjust(3, '0').split('').join(' ') + ' ]'
-      [P20_PRE, nil, "Set P20 pipette to <b>#{setting} uL</b>"]
-    elsif volume_ul <= 200
-      setting = '[ ' + volume_ul.round.to_s.rjust(3, '0').split('').join(' ') + ' ]'
-      [P200_PRE, nil, "Set p200 pipette to <b>#{setting} uL</b>"]
-    elsif volume_ul <= 1000
-      setting = '[ ' + (volume_ul / 10).round.to_s.rjust(3, '0').split('').join(' ') + ' ]'
-      [P1000_PRE, nil, "Set p1000 pipette to <b>#{setting} uL</b>"]
-    else
-      factor = volume_ul.fdiv(1000).ceil
-      split_volume = volume_ul.fdiv(factor)
-      setting = '[ ' + (split_volume / 10).round.to_s.rjust(3, '0').split('').join(' ') + ' ]'
-      [P1000_PRE, "Transfer <b>#{split_volume.round}uL</b>, <b>#{factor} times</b>.", "Set p1000 pipette to <b>#{setting}</b>"]
-    end
-  end
-
-  # helper method for simple incubations
-  def incubate(samples, time)
-    show do
-      title 'Incubate E5 Tubes to ensure full RNA recovery.'
-      note "Let <b>#{samples.to_sentence}</b> incubate for <b>#{time}</b> at room temperature."
-      check "Set a timer for <b>#{time}</b>"
-      note 'Do not proceed until time has elapsed.'
-    end
-  end
-
   def centrifuge_columns(flow_instructions: nil, extra_warning: nil, speed: nil, centrifuge_time: "1 Minute")
     columns = sample_labels.map { |s| "#{SAMPLE_COLUMN}-#{s}" }
-
     show do
       title " Centrifuge Columns for #{centrifuge_time}"
       warning extra_warning if extra_warning
@@ -493,15 +401,19 @@ class Protocol
         title "INCUBATE LYSED SAMPLES"
     end
     lysed_samples = ops.map { |op| "#{LYSIS_BUFFER}-#{op.temporary[:output_sample]}" }
-    incubate(lysed_samples, '10 minutes')
+    incubate(lysed_samples, '10 minutes', tube_type = 'E1')
   end
 
   ETHANOL_BUFFER_VOLUME = 560 
   def add_ethanol
-    show do
-        title "ADD ETHANOL"
-    end
+
     lysis_buffers = operations.map { |op| "#{LYSIS_BUFFER}-#{op.temporary[:output_sample]}" }
+    
+    show do
+        title "Add Ethanol to Lysed Samples"
+        check "After the 10-minute incubation, centrifuge #{lysis_buffers.to_sentence} for 3-5 seconds to bring down liquid from the tube caps"
+    end
+    
     transfer_and_vortex(
       "Add #{ETHANOL} to samples #{lysis_buffers.to_sentence}",
       ETHANOL,
@@ -685,6 +597,100 @@ class Protocol
     show do
       title 'Remove outer Layer of Gloves'
       check "Remove outer layer of gloves and discard them into #{WASTE_PRE}"
+    end
+  end
+  
+  ###
+  # Helper Methods
+  ###
+  # helper method for simple transfers in this protocol
+  def transfer_and_vortex(title, from, to, volume_ul, warning: nil, to_svg: nil, from_svg: nil, skip_vortex: false, skip_centrifuge: false, extra_check: nil, vortex_note: nil, centrifuge_note: nil, vortex_time: 2)
+
+    pipette, extra_note, setting_instruction = pipette_decision(volume_ul)
+   # pipette, extra_note, setting_instruction = "P20", nil, "Set P20 pipette to [0 5 6]"  
+    
+    if to.is_a?(Array) # MULTI TRANSFER
+      img = nil
+      if from_svg && to_svg
+        from_component, from_sample_num = from.split('-')
+        from_label = from_component != ETHANOL && from_component != GuSCN_WASTE ? from.split('-').join("\n") : ''
+        from_svg_rendered = draw_svg(from_svg, svg_label: from_label)
+        to_labels = to.map { |t| t.split('-').join("\n") }
+        to_svgs_rendered = to_labels.map.with_index { |to_label, i| draw_svg(to_svg, svg_label: to_label).translate!(130 * i, 0) }
+        to_svg_final = SVGElement.new(children: to_svgs_rendered, boundx: 300, boundy: 220)
+        img = make_transfer(from_svg_rendered, to_svg_final, 300, "#{volume_ul}ul", "(#{pipette})")
+      end
+      show do
+        title title
+        check setting_instruction
+        to.each do |t|
+          check "Transfer <b>#{volume_ul}uL</b> of <b>#{from}</b> into <b>#{t}</b> using a #{pipette} pipette."
+          note extra_note if extra_note
+          check "Discard pipette tip into #{WASTE_PRE}."
+          check extra_check if extra_check
+        end
+        warning warning if warning
+        note display_svg(img, 0.75) if img
+        check "Ensure tube caps are tightly shut for #{to.to_sentence}."
+        check "Vortex <b>#{to.to_sentence}</b> for <b>#{vortex_time} seconds, twice</b>." unless skip_vortex
+        check "Centrifuge <b>#{to.to_sentence}</b> for <b>5 seconds</b>." unless skip_centrifuge
+        check vortex_note
+        check centrifuge_note
+      end
+    else # SINGLE TRANSFER
+      from_component, from_sample_num = from.split('-')
+      to_component, to_sample_num = to.split('-')
+      if from_svg && to_svg
+        from_label = from_component != ETHANOL && from_component != GuSCN_WASTE ? [from_component, from_sample_num].join("\n") : ''
+        from_svg = draw_svg(from_svg, svg_label: from_label)
+        to_label = to_component != ETHANOL && to_component != GuSCN_WASTE ? [to_component, to_sample_num].join("\n") : ''
+        to_svg = draw_svg(to_svg, svg_label: to_label)
+        img = make_transfer(from_svg, to_svg, 300, "#{volume_ul}ul", "(#{pipette})")
+      end
+
+      show do
+        title title
+        check setting_instruction
+        check "Transfer <b>#{volume_ul}uL</b> of <b>#{from}</b> into <b>#{to}</b> using a #{pipette} pipette."
+        note extra_note if extra_note
+        warning warning if warning
+        note display_svg(img, 0.75) if img
+        check "Discard pipette tip into #{WASTE_PRE}."
+        check extra_check if extra_check
+        check "Ensure tube cap is tightly shut for #{to}."
+        check "Vortex <b>#{to}</b> for <b>#{vortex_time} seconds, twice</b>." unless skip_vortex
+        check "Centrifuge <b>#{to}</b> for <b>5 seconds</b>." unless skip_centrifuge
+        check vortex_note
+        check centrifuge_note
+      end
+    end
+  end
+
+  def pipette_decision(volume_ul)
+    if volume_ul <= 20
+      setting = '[ ' + (volume_ul * 10).round.to_s.rjust(3, '0').split('').join(' ') + ' ]'
+      [P20_PRE, nil, "Set P20 pipette to <b>#{setting} uL</b>"]
+    elsif volume_ul <= 200
+      setting = '[ ' + volume_ul.round.to_s.rjust(3, '0').split('').join(' ') + ' ]'
+      [P200_PRE, nil, "Set p200 pipette to <b>#{setting} uL</b>"]
+    elsif volume_ul <= 1000
+      setting = '[ ' + (volume_ul / 10).round.to_s.rjust(3, '0').split('').join(' ') + ' ]'
+      [P1000_PRE, nil, "Set p1000 pipette to <b>#{setting} uL</b>"]
+    else
+      factor = volume_ul.fdiv(1000).ceil
+      split_volume = volume_ul.fdiv(factor)
+      setting = '[ ' + (split_volume / 10).round.to_s.rjust(3, '0').split('').join(' ') + ' ]'
+      [P1000_PRE, "Transfer <b>#{split_volume.round}uL</b>, <b>#{factor} times</b>.", "Set p1000 pipette to <b>#{setting}</b>"]
+    end
+  end
+
+  # helper method for simple incubations
+  def incubate(samples, time, tube_type = nil)
+    show do
+      title "Incubate #{tube_type} Tubes to ensure full RNA recovery."
+      note "Let <b>#{samples.to_sentence}</b> incubate for <b>#{time}</b> at room temperature."
+      check "Set a timer for <b>#{time}</b>"
+      note 'Do not proceed until time has elapsed.'
     end
   end
 end
