@@ -318,15 +318,16 @@ class Protocol
   end
 
   def prepare_lysis_buffers
+      
+    lysis_buffers = operations.map { |op| "#{LYSIS_BUFFER}-#{op.temporary[:output_sample]}" }
+    
     show do
       title "PREPARE LYSIS BUFFERS"
-      title "Centrifuge the following:" # E0 and E4
-      check "Centrifuge <b>#{DTT}</b> and <b>#{WASH1}</b> for <b>5 seconds</b>." # E0 and E2
-      check "Centrifuge <b>E1-001</b> and <b>E1-002</b> for 5 seconds"
-      check "Centrifuge <b>#{WASH2}</b> and <b>#{SA_WATER}</b> for <b>5 seconds</b>." #E3 and E4
+      title "Vortex and Centrifuge the following:" # E0 and E4
+      check "Vortex and Centrifuge <b>#{DTT}</b> and <b>#{WASH1}</b> for <b>5 seconds</b>." # E0 and E2
+      check "Vortex and Centrifuge <b>#{lysis_buffers.to_sentence}</b> for <b>5 seconds</b>"
+      check "Vortex and Centrifuge <b>#{WASH2}</b> and <b>#{SA_WATER}</b> for <b>5 seconds</b>." #E3 and E4
     end
-
-    lysis_buffers = operations.map { |op| "#{LYSIS_BUFFER}-#{op.temporary[:output_sample]}" }
  
     transfer_and_vortex(
       "Prepare Lysis Buffers #{lysis_buffers.to_sentence}",
