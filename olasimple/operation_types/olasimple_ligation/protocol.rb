@@ -330,7 +330,26 @@ class Protocol
         to_strip_name = "#{op.temporary[:output_unit]}-#{op.temporary[:output_sample]}"
         tubeP = make_tube(opentube, ['PCR Sample'], op.input_tube_label(INPUT), 'small').scale(0.75)
         ligation_tubes = display_ligation_tubes(*op.output_tokens(OUTPUT), COLORS[idx]).translate!(0, -20)
-        # pre_transfer_validation_with_multiple_tries(from, to_strip_name, tubeP, ligation_tubes) # temporarily removing until I debug the error
+        
+        ligation_tubes.align!('bottom-left')
+        ligation_tubes.align_with(tubeP, 'bottom-right')
+        ligation_tubes.translate!(50)
+        
+        image_both = SVGElement.new(children: [tubeP, ligation_tubes], boundx: 800, boundy: tube.boundy) # was 600
+        image_both.translate!(50)
+        image_both.boundy = image_both.boundy + 50
+
+        
+        p = proc do
+          title "Arrange tubes for transfer"
+          note "Ensure that you have sample #{from.bold} and ligation tubes #{op.temporary[:label_string].bold} in front of you as shown."
+          check "Scan in #{from} and #{to_strip_name}"
+        end # end proc do
+
+        content = ShowBlock.new(self).run(&p)
+
+        pre_transfer_validation_with_multiple_tries(from, to_strip_name, image_both, content_override: content)
+        
         if expert_mode
           # All transfers at once...
           show do
