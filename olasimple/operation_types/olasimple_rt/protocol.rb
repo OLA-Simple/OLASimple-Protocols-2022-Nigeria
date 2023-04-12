@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-# RT module updated March 16, 2022
+# RT module updated March 27, 2023
 needs 'OLASimple/OLAConstants'
 needs 'OLASimple/OLALib'
 needs 'OLASimple/OLAGraphics'
@@ -98,6 +98,7 @@ class Protocol
         centrifuge_samples(operations.running)
         transfer_samples(operations.running)
         start_thermocycler(operations.running)
+        store(operations.running)
         
         accept_comments
         conclusion(sorted_ops)
@@ -171,12 +172,22 @@ class Protocol
             end # ops each do
         # inthis case there are no subpackages
         show_open_package(kit_and_unit, '', 0) do
+            rt_tube_labels = ops.map { |op| op.output_tube_label(OUTPUT) }
+            num_samples = 2
+            grid = SVGGrid.new(num_samples, 1, 75, 10)
+            rt_tube_labels.each_with_index do |tube_label, i|
+                rt_tube = make_tube(closedtube, '', tube_label, 'powder', true).scale(0.75)
+                grid.add(rt_tube, i, 0)
+            end # rt_tube labels each do
+            img = SVGElement.new(children: [grid], boundx: 1000, boundy: 300)
+            check 'Check that the following are in the pack:'
+            note display_svg(img, 0.75)
+            # check 'Discard the packaging material.'
         end #show_open_package do
       end #grouped by unit
     end #method
-    
+  
     def centrifuge_samples(ops)
-        #labels = ops.map { |op| ref(op.output(OUTPUT).item) }
         show do
           title 'Centrifuge all samples for 5 seconds'
           check 'Place all tubes and samples in the centrifuge, along with a balancing tube. It is important to balance the tubes.'
@@ -194,12 +205,9 @@ class Protocol
           ops.each do |op|
             from = ref(op.input(INPUT).item)
             to = ref(op.output(OUTPUT).item)
-            # tubeS = make_tube(opentube, [SAMPLE_ALIAS, from], '', fluid = 'medium')
             tubeS = make_tube(opentube, [from], '', fluid = 'medium')
             tubeP = make_tube(opentube, [to], '', fluid = 'medium').scale!(0.75)
-            #tubeS_closed = make_tube(closedtube, [SAMPLE_ALIAS, from], '', fluid = 'medium')
-            tubeS_closed = make_tube(closedtube, [from], '', fluid = 'medium')
-            tubeP_closed = make_tube(closedtube, [to], '', fluid = 'medium').translate!(0,40).scale!(0.75)
+            tubeP = make_tube(opentube, [to], '', fluid = 'powder').scale!(0.75)
 
             #pre_transfer_validation_with_multiple_tries(from, to, tubeS_closed, tubeP_closed)
 
@@ -231,7 +239,7 @@ class Protocol
         samples = ops.map { |op| op.output(OUTPUT).item }
         sample_refs = samples.map { |sample| ref(sample) }
 
-        vortex_and_centrifuge_helper("RT TUBES",
+        vortex_and_centrifuge_helper("RT Tubes",
                                      sample_refs,
                                      VORTEX_TIME, CENTRIFUGE_TIME,
                                      'to mix.', 'to pull down liquid', AREA, mynote = nil, vortex_type = "Pulse")
@@ -256,6 +264,14 @@ class Protocol
           op.output(OUTPUT).item.move THERMOCYCLER
         end # ops each do
     end # method 
+    
+    def store(ops)
+        extraction_tubes = ops.map { |op| ref(op.input(INPUT).item) }
+        show do
+            title 'Store Items'
+            note "Either return #{extraction_tubes[0]} and #{extraction_tubes[1]} to -20C Freezer or Discard"
+        end # show do
+    end # store
     
     
   #######################################
@@ -294,3 +310,4 @@ class Protocol
   end #conclusion
 
 end #class
+

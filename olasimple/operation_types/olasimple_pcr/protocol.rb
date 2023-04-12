@@ -6,7 +6,7 @@
 # OLASimple PCR
 # author: Justin Vrana
 # date: March 2018
-# updated version: March 28, 2022
+# updated version: January 19, 2023
 #
 ##########################################
 
@@ -121,8 +121,6 @@ class Protocol
     open_pcr_packages(operations.running)
     # debug_table(operations.running)
     # check_for_tube_defects sorted_ops.running
-    # nuttada thaw
-    # nuttada needs vortex + centrigure
     centrifuge_samples(sorted_ops.running)
     
     resuspend_pcr_mix(sorted_ops.running)
@@ -136,8 +134,6 @@ class Protocol
     conclusion(sorted_ops)
     {}
   end # main
-
-  # end of main
 
   #######################################
   # Utilities
@@ -201,11 +197,9 @@ class Protocol
   end
 
   def get_pcr_packages(myops)
-    # TODO: remove all references to 4C fridge and replace with refridgerator
     gops = group_packages(myops)
     show do
       title "Take #{PCR_PKG_NAME.pluralize(gops.length)} from the #{FRIDGE_PRE} with a Paper Towel and place on the #{BENCH_POST}"
-      # check "Take the following from the #{FRIDGE} and place #{pluralizer(PACKAGE, gops.length)} on the #{BENCH}"
       gops.each do |unit, _ops|
         check 'Take package ' "#{unit.bold}" ' from fridge.'
         check 'Place package ' "#{unit.bold}" ' on the bench.'
@@ -230,7 +224,6 @@ class Protocol
 
         num_samples = ops.first.temporary[:pack_hash][NUM_SAMPLES_FIELD_VALUE]
         kit, unit, component, sample = ops.first.output_tokens(OUTPUT)
-        # diluentATube = label_tube(closedtube, tube_label(kit, unit, diluentAcomponent, ""))
         diluentATube = make_tube(closedtube, 'Diluent A', ops.first.tube_label('diluent A'), 'medium', true)
 
         grid = SVGGrid.new(num_samples, 1, 75, 10)
@@ -362,7 +355,7 @@ class Protocol
 
     vortex_and_centrifuge_helper(PCR_SAMPLE,
                                  sample_refs,
-                                 "2 seconds, twice", CENTRIFUGE_TIME,
+                                 "5 seconds, once", CENTRIFUGE_TIME,
                                  'to mix.', 'to pull down liquid', AREA, mynote = nil, vortex_type = "Pulse")
     
     t = Table.new
@@ -442,7 +435,7 @@ class Protocol
     show do
       title 'Thank you!'
       note 'Click OK to finish this protocol'
-      note 'You may start the next protocol in 2 hours.'
+      note 'You may start the next protocol in 1 hour.'
     end
   end
 end # Class

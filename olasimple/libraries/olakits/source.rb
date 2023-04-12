@@ -48,14 +48,19 @@ module OLAKits
                     "4",
                     "5",
                     "6",
-                    "7"
+                    "7",
+                    "8",
+                    "9",
+                    "10"
                 ],
-                "diluent A" => "0"
+                "diluent A" => "0",
+                "tubes_blue" => ["blue1", "blue2","blue3", "blue4", "blue5", "blue5", "blue4", "blue3", "blue2", "blue1"],
+                "tubes_pink" => ["pink1", "pink2","pink3", "pink4", "pink5", "pink5", "pink4", "pink3", "pink2", "pink1"]
             },
             "PCR to Ligation Mix Volume" => 4,
             "Ligation Mix Rehydration Volume" => 20,
             "Number of Samples" => 2,
-            "Number of Sub Packages" => 2
+            "Number of Sub Packages" => 2,
         },
 
         "detection" => {
@@ -68,7 +73,10 @@ module OLAKits
                     "4",
                     "5",
                     "6",
-                    "7"
+                    "7",
+                    "8",
+                    "9",
+                    "10"
                 ],
                 "diluent A" => "0",
                 "stop" => "1",
@@ -76,25 +84,21 @@ module OLAKits
             },
             "Number of Samples" => 2,
             "Number of Sub Packages" => 4,
-            "Stop Rehydration Volume" => 67,
-            "Gold Rehydration Volume" => 670,
+            "Stop Rehydration Volume" => 96,
+            "Gold Rehydration Volume" => 1032,
             "Gold to Strip Volume" => 40,
             "Sample to Strip Volume" => 24,
             "Stop to Sample Volume" => 4,
             "Sample Volume" => 2.4,
-            "Mutation Labels" => [
-                "K65R",
-                "70E",
-                "K103N",
-                "V106M",
-                "Y181C",
-                "M184V",
-                "G190A",
+        },
+        
+        "analysis" => {
+             "Mutation Labels" => [
+                "M41L", "K65R", "L74I", "K103N", "Y115F", "Y181C", "M184V", "G190A", "T215F/Y", "NTC"
             ],
-            "Mutation Colors" => ["red", "green","yellow", "blue", "purple", "white", "gray"]
-
+            "Mutation Colors" => ["red", "green","yellow", "blue", "purple", "white", "gray", "red", "green", "yellow"]
         }
-
     }
   end
 end
+

@@ -19,6 +19,46 @@ module OLAGraphics
     <<EOF
       /* <![CDATA[ */
       
+      #svg .blue1 path {
+          fill: #2020ef;
+      }
+      
+      #svg .blue2 path {
+          fill: #4141ce;
+      }
+
+      #svg .blue3 path {
+          fill: #5757ea;
+      }
+
+      #svg .blue4 path {
+          fill: #8f8ff7;
+      }
+      
+      #svg .blue5 path {
+          fill: #c7c7f2;
+      }
+
+      #svg .pink1 path {
+          fill: #c40a20;
+      }
+      
+      #svg .pink2 path {
+          fill: #b55072;
+      }
+
+      #svg .pink3 path {
+          fill: #aa718d;
+      }
+
+      #svg .pink4 path {
+          fill: #e5a8be;
+      }
+      
+      #svg .pink5 path {
+          fill: #fcedfa;
+      }
+
       #svg .yellow path {
           fill: #f7f9c2;
       }
@@ -50,7 +90,47 @@ module OLAGraphics
       #svg .hidden {
         opacity: 0.3;
       }
+      
+      #svg .pink1strip rect {
+          fill: #c40a20;
+      }
+      
+      #svg .pink2strip rect {
+          fill: #b55072;
+      }
 
+      #svg .pink3strip rect {
+          fill: #aa718d;
+      }
+
+      #svg .pink4strip rect {
+          fill: #e5a8be;
+      }
+      
+      #svg .pink5strip rect {
+          fill: #fcedfa;
+      }
+      
+      #svg .blue1strip rect {
+          fill: #2020ef;
+      }
+      
+      #svg .blue2strip rect {
+          fill: #4141ce;
+      }
+
+      #svg .blue3strip rect {
+          fill: #5757ea;
+      }
+
+      #svg .blue4strip rect {
+          fill: #8f8ff7;
+      }
+      
+      #svg .blue5strip rect {
+          fill: #c7c7f2;
+      }
+      
       #svg .yellowstrip rect {
           fill: #f7f9c2;
       }
@@ -254,7 +334,7 @@ EOF
   def display_ligation_tubes(kit, unit, components, sample, colors, open_tubes = nil, hide = nil, spacing = 70)
     
     mystripwell = stripwell(kit, unit, components, sample, open_tubes, colors, hide, spacing).scale!(0.75)
-    myimage = SVGElement.new(boundx: 500, boundy: 190)
+    myimage = SVGElement.new(boundx: 600, boundy: 190) # up from 500
     myimage.add_child(mystripwell)
   end
 
@@ -299,7 +379,7 @@ EOF
     end
     
     mypanel = panel(kit, unit, components, sample, colors)
-    mypanel.boundx = 600
+    mypanel.boundx = 700 # up from 600
     mypanel
   end
 

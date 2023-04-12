@@ -6,8 +6,7 @@
 # OLASimple Ligation
 # author: Justin Vrana
 # date: March 2018
-# updated version: March 20, 2022
-#
+# updated version: March 27, 2023
 ##########################################
 
 needs 'OLASimple/OLAConstants'
@@ -29,7 +28,6 @@ class Protocol
   INPUT = 'PCR Product'
   OUTPUT = 'Ligation Product'
   PACK = 'Ligation Pack'
-  A = 'Diluent L0' #Update to be LO??
 
   ##########################################
   # TERMINOLOGY
@@ -41,13 +39,12 @@ class Protocol
 
   AREA = POST_PCR
 
-  # for debugging
   PREV_COMPONENT = '2'
   PREV_UNIT = 'A'
 
   CENTRIFUGE_TIME = '5 seconds' # time to pulse centrifuge to pull down dried powder
   VORTEX_TIME = '5 seconds' # time to pulse vortex to mix
-  TUBE_CAP_WARNING = 'Check to make sure tube caps are completely closed.'
+  #TUBE_CAP_WARNING = 'Check to make sure tube caps are completely closed.'
 
   PACK_HASH = LIGATION_UNIT
 
@@ -97,7 +94,7 @@ class Protocol
     get_ligation_packages(operations.running)
     validate_ligation_packages(operations.running)
     open_ligation_packages(operations.running)
-    # check_for_tube_defects operations.running
+    # # check_for_tube_defects operations.running
     centrifuge_samples(sorted_ops.running)
     rehydrate_ligation_mix(sorted_ops.running, expert_mode)
     vortex_and_centrifuge_samples(sorted_ops.running)
@@ -205,7 +202,7 @@ class Protocol
         ops.each_with_index do |op, i|
           _tokens = tokens.dup
           _tokens[-1] = op.temporary[:input_sample]
-          ligation_tubes = display_ligation_tubes(*_tokens, COLORS)
+          ligation_tubes = display_ligation_tubes(*_tokens, COLORS[i])
           stripwell = ligation_tubes.g
           grid.add(stripwell, 0, i)
         end
@@ -214,10 +211,6 @@ class Protocol
         img = SVGElement.new(children: [tube, grid], boundx: 1000, boundy: 300).translate!(30, -50)
         note 'Check that the following tubes are in the pack:'
         note 'Colored tubes in the photo will not match the color of the tubes in the package. Refer to the sticker and barcode attached to each tube to confirm which sample it is.'
-        # check "a 1.5mL tube of #{DILUENT_A} labeled #{ops.first.ref("diluent A")}"
-        # ops.each do |op|
-        #   check "a strip of colored tubes labeled #{op.temporary[:label_string].bold}"
-        # end
         note display_svg(img, 0.75)
       end
 
@@ -230,17 +223,11 @@ class Protocol
 
   def centrifuge_samples(ops)
     labels = ops.map { |op| op.temporary[:label_string] }
-    diluentL0Labels = ops.map { |op| op.ref('diluent L0') }.uniq
     show do
       title 'Centrifuge Diluent L0 and Ligation tubes for 5 seconds to pull down reagents'
       note 'Put the tag side of the rack toward the center of the centrifuge'
-      check "Centrifuge #{(labels + diluentL0Labels).to_sentence.bold} for 5 seconds."
+      check "Centrifuge #{(labels + ['L0']).to_sentence.bold} for 5 seconds."
     end
-    # centrifuge_helper("tube set", labels, CENTRIFUGE_TIME,
-    #                   "to pull down dried powder.",
-    #                   "There may be dried powder on the inside of the tube #{"lid".pluralize(labels.length)}.")
-    # centrifuge_helper("tube", diluentALabels, CENTRIFUGE_TIME,
-    #                   "to pull down liquid.")
   end
 
   def vortex_and_centrifuge_samples(ops)
@@ -272,15 +259,14 @@ class Protocol
   def rehydrate_ligation_mix(myops, expert_mode)
     gops = myops.group_by { |op| op.temporary[:input_kit_and_unit] }
     gops.each do |_unit, ops|
-      ops.each do |op|
+      ops.each_with_index do |op, idx|
         labels = op.output_refs(OUTPUT)
         if expert_mode
           # All transfers at once...
           from = op.ref('diluent A')
-          #tubeA = make_tube(opentube, [DILUENT_A, from], op.tube_label('diluent A'), 'medium')
           tubeA = make_tube(opentube, [DILUENT_L], op.tube_label('diluent L0'), 'medium')
           show do
-            title "Add #{DILUENT_L} to #{LIGATION_SAMPLE}s #{op.temporary[:label_string].bold}"
+            title "REHYDRATE MIX: Add #{DILUENT_L} to #{LIGATION_SAMPLE}s #{op.temporary[:label_string].bold}"
             labels.map! { |l| "<b>#{l}</b>" }
             note "In this step we will be adding #{LIGATION_VOLUME}uL of #{DILUENT_L} into #{pluralizer('tube', COMPONENTS.length)} "
             "of the colored strip of tubes labeled <b>#{labels[0]} to #{labels[-1]}</b>"
@@ -288,7 +274,7 @@ class Protocol
             note "Using #{P20_POST} add #{LIGATION_VOLUME}uL from #{DILUENT_L} into each of the #{COMPONENTS.length} tubes."
             warning "Only open one of the ligation tubes at a time and discard. Change your pipette tip after every transfer of #{DILUENT_L}."
 
-            ligation_tubes = display_ligation_tubes(*op.output_tokens(OUTPUT), COLORS).translate!(0, -20)
+            ligation_tubes = display_ligation_tubes(*op.output_tokens(OUTPUT), COLORS[idx]).translate!(0, -20)
 
             transfer_image = make_transfer(tubeA, ligation_tubes, 300, "#{LIGATION_VOLUME}uL", "(#{P20_POST} pipette)")
             note display_svg(transfer_image, 0.6)
@@ -296,11 +282,6 @@ class Protocol
             labels.each do |l|
               check "Transfer #{LIGATION_VOLUME}uL from #{from.bold} into #{l}. Discard tip, close cap."
             end
-
-            # t = Table.new
-            # t.add_column("Tube", labels)
-            # t.add_column("Color", COMPONENTS_COLOR_CODE)
-            # table t
           end
         else
           # each transfer
@@ -319,7 +300,6 @@ class Protocol
           end
           ligation_tubes_svg = display_ligation_tubes(*op.output_tokens(OUTPUT), COLORS).translate!(0, -20)
           img = display_svg(ligation_tubes_svg, 0.7)
-          # centrifuge_helper(LIGATION_SAMPLE, op.temporary[:labels], CENTRIFUGE_TIME, "to pull down dried powder.", img)
 
           labels.each.with_index do |label, i|
             show do
@@ -344,28 +324,47 @@ class Protocol
   def add_template(myops, expert_mode)
     gops = myops.group_by { |op| op.temporary[:input_kit_and_unit] }
     gops.each do |_unit, ops|
-      ops.each do |op|
+      ops.each_with_index do |op, idx|
         from = op.input_ref(INPUT)
         labels = op.output_refs(OUTPUT)
         to_strip_name = "#{op.temporary[:output_unit]}-#{op.temporary[:output_sample]}"
         tubeP = make_tube(opentube, ['PCR Sample'], op.input_tube_label(INPUT), 'small').scale(0.75)
-        ligation_tubes = display_ligation_tubes(*op.output_tokens(OUTPUT), COLORS).translate!(0, -20)
-        pre_transfer_validation_with_multiple_tries(from, to_strip_name, tubeP, ligation_tubes)
+        ligation_tubes = display_ligation_tubes(*op.output_tokens(OUTPUT), COLORS[idx]).translate!(0, -20)
+        
+        ligation_tubes.align!('bottom-left')
+        ligation_tubes.align_with(tubeP, 'bottom-right')
+        ligation_tubes.translate!(50)
+        
+        image_both = SVGElement.new(children: [tubeP, ligation_tubes], boundx: 800, boundy: tube.boundy) # was 600
+        image_both.translate!(50)
+        image_both.boundy = image_both.boundy + 50
+
+        
+        p = proc do
+          title "Arrange tubes for transfer"
+          note "Ensure that you have sample #{from.bold} and ligation tubes #{op.temporary[:label_string].bold} in front of you as shown."
+          check "Scan in #{from} and #{to_strip_name}"
+        end # end proc do
+
+        content = ShowBlock.new(self).run(&p)
+
+        pre_transfer_validation_with_multiple_tries(from, to_strip_name, image_both, content_override: content)
+        
         if expert_mode
           # All transfers at once...
           show do
             raw transfer_title_proc(SAMPLE_VOLUME, from, op.temporary[:label_string])
             warning 'Change pipette tip between tubes'
-            check "Using a P20 pipette set to [0 4 0]."
+            check "ADD TEMPLATE Using a P20 pipette set to [0 4 0]."
             note "Add #{SAMPLE_VOLUME}uL from #{from.bold} into each of #{op.temporary[:label_string].bold}. Only open one ligation tube at a time."
             note "Discard pipette tip between each tube."
 
             transfer_image = make_transfer(tubeP, ligation_tubes, 300, "#{SAMPLE_VOLUME}uL", "(Post-PCR P20 pipette)")
             note display_svg(transfer_image, 0.6)
             labels.each do |l|
-              check "Transfer #{SAMPLE_VOLUME}uL from #{from.bold} into #{l}. Discard tip, close cap."
-            end
-          end
+              check "Transfer #{SAMPLE_VOLUME}uL from #{from.bold} into #{l.bold}. Discard tip, close cap."
+            end # labels each
+          end # show do
         else
           show do
             title "Position #{PCR_SAMPLE} #{from.bold} and #{LIGATION_SAMPLE.pluralize(COMPONENTS.length)} #{op.temporary[:label_string].bold} in front of you."
@@ -378,7 +377,7 @@ class Protocol
             image = SVGElement.new(children: [tube, ligation_tubes], boundx: 1000, boundy: tube.boundy)
             image.translate!(50, -30)
             note display_svg(image, 0.75)
-          end
+          end # show do 
           labels.each.with_index do |label, i|
             show do
               raw transfer_title_proc(SAMPLE_VOLUME, from, label)
@@ -389,18 +388,18 @@ class Protocol
               tube = make_tube(opentube, ['PCR Sample'], op.input_tube_label(INPUT), 'small').scale(0.75)
               img = transfer_to_ligation_tubes_with_highlight(tube, i, *op.output_tokens(OUTPUT), COLORS, SAMPLE_VOLUME, "(Post-PCR P2 pipette)")
               note display_svg(img, 0.6)
-            end
-          end
-        end
-      end
-    end
-  end
+            end # show do
+          end # labels.each do
+        end # if else
+      end # ops each do
+    end # gops each do
+  end # add_template
 
   def start_ligation(myops)
     gops = myops.group_by { |op| op.temporary[:input_kit_and_unit] }
     ops = gops.map { |_unit, ops| ops }.flatten # organize by unit
 
-    add_to_thermocycler('sample', ops.length * COMPONENTS.length, LIG_CYCLE, ligation_cycle_table, 'Ligation')
+    add_to_thermocycler('sample', ops.length * COMPONENTS.length, LIG_CYCLE, ligation_cycle_table, 'Ligation', note = "for 24 uL")
 
     show do
       title 'Set a timer for 1 Hour'
