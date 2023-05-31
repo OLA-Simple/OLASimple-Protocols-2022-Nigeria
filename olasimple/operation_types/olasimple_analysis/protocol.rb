@@ -158,6 +158,45 @@ class Protocol
             
             band_keys = band_choices.keys
             test_colors = ["red", "green","yellow", "blue", "purple", "gray"]
+            
+            # Find upload 
+            
+            # upload = Upload.find(4)
+            image_upload_id = op.input(INPUT).item.get(SCANNED_IMAGE_UPLOAD_ID_KEY)
+            # Since we can't show the images, use this to get the name of the file instead
+            
+            
+            # if image_upload_id.nil?
+        #   op.error(:no_image_attached, "No image was found for item #{op.input(INPUT).item.id} (#{op.input_refs(INPUT)})")
+        #     end # if image nil
+            upload = Upload.find(image_upload_id)
+            file_name = upload.upload_file_name
+            
+            show do
+                note "image upload id is upload is #{image_upload_id}"
+                note "upload name is #{file_name}"
+            end
+            
+            # confirm they have the right file
+            5.times do
+                confirmed = show do
+                    title "Confirm that you are looking at file #{file_name.bold}"
+                    select %w[yes no], var: 'confirmed', label: 'Are you looking at the correct image file?', default: 0
+                end # confirmed
+                
+                image_confirmed = confirmed[:confirmed] == 'yes'
+                show do
+                    note "image confirmed == #{image_confirmed}"
+                end
+
+                next if image_confirmed
+
+                show do
+                    title "You did not confirm the file name."
+                    note "If you don't see the file name, ask for assistance and try again."
+                end
+            end # 5 times
+            
         
             # make the reference image with the codon labels
             # grid = SVGGrid.new(6, 1, 90, 10)
@@ -171,11 +210,10 @@ class Protocol
                 make_strip(strip_label, test_colors[idx] + 'strip') # could really be any color since this is for reference
                 grid.add(strip, idx, 0)
                 
-                	# labels for bottom, with results
+                # labels for bottom, with results
                 choice_label = label(band_keys[idx], 'font-size'.to_sym => 25)
                 choice_label.align_with(strip, 'center-bottom')
                 choice_label.align!('center-top').translate!(0, 30)
-                
                 
                 # {"M": {bands: [mut_band], description: "-CTRL -WT +MUT"},}
                 bands = band_choices[band_key.to_sym][:bands]
@@ -194,25 +232,18 @@ class Protocol
         
             op.temporary[:results] = {"choice_letter": [], "choice_category": []}
             
-            # upload = Upload.find(4)
-            image_upload_id = op.input(INPUT).item.get(SCANNED_IMAGE_UPLOAD_ID_KEY)
-            
-            # if image_upload_id.nil?
-        #   op.error(:no_image_attached, "No image was found for item #{op.input(INPUT).item.id} (#{op.input_refs(INPUT)})")
-        #     end # if image nil
-            upload = Upload.find(image_upload_id)
-            
             PREV_COMPONENTS.each_with_index do |this_component, idx|
                 alias_label = op.input_refs(INPUT)[idx] # e.g. D1-001
                 # note display_svg(reference_img)
                 tech_choice = show do
                     title "Compare #{STRIP} #{alias_label} with the images below."
+                    warning "Make sure you are looking at the correct strip."
                     note "There are three possible pink/red #{BANDS} for the #{STRIP}."
                     note "Select the choice below that most resembles #{STRIP} #{alias_label}"
-                    # warning "<h2>After you click OK, you cannot change your call."
+                    warning "<h2>After you click OK, you cannot change your call."
                     note "Signal of all the lines does not have to be equally strong. Flow control signal is always the strongest."
                     select band_choices.keys.map {|k| k.to_s}, var: :strip_choice, label: "Choose:", default: 0
-                    raw display_strip_section(upload, idx, PREV_COMPONENTS.length, "25%")
+                    # raw display_strip_section(upload, idx, PREV_COMPONENTS.length, "25%")
                     note display_svg(reference_img)
                 end # tech choice show do
                 
