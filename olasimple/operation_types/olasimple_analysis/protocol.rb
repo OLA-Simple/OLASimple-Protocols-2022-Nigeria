@@ -4,7 +4,7 @@
 #
 # OLASimple Analysis
 # author: Justin Vrana
-# update in progress: March 14, 2023
+# update in progress: May 31, 2023
 # former visual call plus some stuff from detection
 ##########################################
 
@@ -34,12 +34,7 @@ class Protocol
     
     INPUT = "Detection Strip"
     
-    DEBUG_UPLOAD_ID = 4 # make upload, get id for deployed version
-    
-    # incoming Item has Data Association for scanned image upload key 
-    # get that image using the key 
-    # output item -- can be same as input item or can be new item
-    # either way, make data assocations for the calls made by the tech
+    DEBUG_UPLOAD_ID = [4, 32] # make upload, get id for deployed version
     
     def main
     
@@ -67,19 +62,20 @@ class Protocol
         debug_setup(operations) # has to happen before temp hash is made
         
         if debug
-            operations.each do |op|
-                op.input(INPUT).item.associate(SCANNED_IMAGE_UPLOAD_ID_KEY, DEBUG_UPLOAD_ID)
+            operations.each_with_index do |op, idx|
+                op.input(INPUT).item.associate(SCANNED_IMAGE_UPLOAD_ID_KEY, DEBUG_UPLOAD_ID[idx])
             end # each do
         end # if debug
         
+        save_temporary_input_values(operations, INPUT)
+        
         # operations.running.each do |op|
         #     image_upload_id = op.input(INPUT).item.get(SCANNED_IMAGE_UPLOAD_ID_KEY)
-        #     if image_upload_id.nil?
-        #         op.error(:no_image_attached, "No image was found for item #{op.input(INPUT).item.id} (#{op.input_refs(INPUT)})")
-        #     end # if image nil
+        # #     if image_upload_id.nil?
+        # #         op.error(:no_image_attached, "No image was found for item #{op.input(INPUT).item.id} (#{op.input_refs(INPUT)})")
+        # #     end # if image nil
         # end # ops each do
         
-        save_temporary_input_values(operations, INPUT)
         introduction
         
         # my_temp_test_function(operations.running)
@@ -110,17 +106,19 @@ class Protocol
         end
     end
 
-    # def my_temp_test_function(ops)
-    #     ops.each_with_index do |op, idx|
-    #         image_upload_id = op.input(INPUT).item.get(SCANNED_IMAGE_UPLOAD_ID_KEY)
-    #         show do
-    #             note "This is my test function"
-    #             note "op.temporary is #{op.temporary}"
-    #             note "input is #{op.input(INPUT).item}"
-    #             note "upload id is #{image_upload_id}"
-    #         end
-    #     end
-    # end
+    def my_temp_test_function(ops)
+        ops.each_with_index do |op, idx|
+            image_upload_id = op.input(INPUT).item.get(SCANNED_IMAGE_UPLOAD_ID_KEY)
+            upload = Upload.find(image_upload_id)
+            show do
+                note "This is my test function"
+                note "op.temporary is #{op.temporary}"
+                note "input is #{op.input(INPUT).item}"
+                note "upload id is #{image_upload_id}"
+                note "file name is #{upload.upload_file_name}"
+            end
+        end
+    end
     
     def introduction
         show do
@@ -159,26 +157,30 @@ class Protocol
             band_keys = band_choices.keys
             test_colors = ["red", "green","yellow", "blue", "purple", "gray"]
             
+            # work around for image display issue
             # Find upload 
-            
-            # upload = Upload.find(4)
-            image_upload_id = op.input(INPUT).item.get(SCANNED_IMAGE_UPLOAD_ID_KEY)
             # Since we can't show the images, use this to get the name of the file instead
+            # either the real one or the one we set up in debug step
+            image_upload_id = op.input(INPUT).item.get(SCANNED_IMAGE_UPLOAD_ID_KEY)
+            upload = Upload.find(image_upload_id)
+            file_name = upload.upload_file_name
             
             
             # if image_upload_id.nil?
         #   op.error(:no_image_attached, "No image was found for item #{op.input(INPUT).item.id} (#{op.input_refs(INPUT)})")
         #     end # if image nil
-            upload = Upload.find(image_upload_id)
-            file_name = upload.upload_file_name
+        
             
-            show do
-                note "image upload id is upload is #{image_upload_id}"
-                note "upload name is #{file_name}"
-            end
+            
+            # show do
+            #     note "image upload id is upload is #{image_upload_id}"
+            #     note "upload name is #{file_name}"
+            # end
             
             # confirm they have the right file
+            image_confirmed = false
             5.times do
+                next if image_confirmed
                 confirmed = show do
                     title "Confirm that you are looking at file #{file_name.bold}"
                     select %w[yes no], var: 'confirmed', label: 'Are you looking at the correct image file?', default: 0
@@ -216,9 +218,9 @@ class Protocol
                 choice_label.align!('center-top').translate!(0, 30)
                 
                 # {"M": {bands: [mut_band], description: "-CTRL -WT +MUT"},}
+                # This will give you [mut_band] or [control_band, wt_band, mut_band] or nothing depending on result
                 bands = band_choices[band_key.to_sym][:bands]
-				# so this will give you [mut_band] or [control_band, wt_band, mut_band] or nothing depending on result
-
+				
                 grid.add(choice_label, idx, 0)
                 # grid.add(category_label, i, 0)
 
@@ -255,11 +257,11 @@ class Protocol
             op.temporary[:results][:choice_letter].append(tech_choice[:strip_choice])
             op.temporary[:results][:choice_category].append(category_hash[tech_choice[:strip_choice].to_sym])
             
-            show do
-                note "Tech Chose #{tech_choice}"
-                note "Results are #{op.temporary[:results]}"
-                # tech_choice {:strip_choice=>"M", :timestamp=>1671042324000}
-            end # display tech choice show do
+            # show do
+            #     note "Tech Chose #{tech_choice}"
+            #     note "Results are #{op.temporary[:results]}"
+            #     # tech_choice {:strip_choice=>"M", :timestamp=>1671042324000}
+            # end # display tech choice show do
             
             current_choice = tech_choice[:strip_choice]
             
@@ -272,10 +274,10 @@ class Protocol
             # # op.associate(make_call_category_key(alias_label), category_hash[current_choice.to_sym])
             op.input(INPUT).item.associate(make_call_category_key(alias_label), category_hash[current_choice.to_sym])
             
-            show do
-                title "TESTING"
-                note "item associations are now #{op.input(INPUT).item.associations}"
-            end
+            # show do
+            #     title "TESTING"
+            #     note "item associations are now #{op.input(INPUT).item.associations}"
+            # end
             
             end # prev components 
             
@@ -315,12 +317,12 @@ class Protocol
         end
         
         
-        ops.each do |op|
-            show do
-                title "RESULTS TEST"
-                note "op.temporary is #{op.temporary}"
-            end
-        end 
+        # ops.each do |op|
+        #     show do
+        #         title "RESULTS TEST"
+        #         note "op.temporary is #{op.temporary}"
+        #     end
+        # end 
     end
     
     def conclusion
