@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-# RT module updated March 27, 2023
+# RT module updated June 21, 2023
 needs 'OLASimple/OLAConstants'
 needs 'OLASimple/OLALib'
 needs 'OLASimple/OLAGraphics'
@@ -269,7 +269,7 @@ class Protocol
         extraction_tubes = ops.map { |op| ref(op.input(INPUT).item) }
         show do
             title 'Store Items'
-            note "Either return #{extraction_tubes[0]} and #{extraction_tubes[1]} to -20C Freezer or Discard"
+            note "Either return #{extraction_tubes[0]} and #{extraction_tubes[1]} to -80C Freezer or Discard"
         end # show do
     end # store
     
