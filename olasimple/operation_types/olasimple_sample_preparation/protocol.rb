@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Sample Preparation Updated March 29, 2023
+# Sample Preparation Updated June 21, 2023
 #
 needs 'OLASimple/OLAConstants'
 needs 'OLASimple/OLAKitIDs'
@@ -46,7 +46,7 @@ class Protocol
     record_technician_id
     safety_warning(AREA)
     required_equipment
-    clean_area(AREA)
+    clean_area(AREA, gloves = false)
 
     kit_groups.each do |kit_num, ops|
       next unless check_batch_size(ops)

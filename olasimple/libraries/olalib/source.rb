@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# updated June 21, 2023
+
 needs 'OLASimple/OLAConstants'
 needs 'OLASimple/OLAGraphics'
 needs 'OLASimple/NetworkRequests'
@@ -627,7 +629,7 @@ module OLALib
     end
   end
 
-  def clean_area(area)
+  def clean_area(area, gloves = true)
     show do
       disinfectant = '10% bleach'
       title "Wipe down the #{area} area with #{disinfectant.bold}."
@@ -636,7 +638,9 @@ module OLALib
       check "Spray #{disinfectant.bold} onto a #{WIPE} and wipe down the bench surface."
       # check "Spray some #{disinfectant.bold} on a #{WIPE}, gently wipe down keyboard and mouse of this computer/tablet."
       warning "Do not spray 10% bleach directly onto tablet, computer, barcode scanner or centrifuge!"
-      check "Finally, spray outside of gloves with #{disinfectant.bold}."
+      if gloves == true
+        check "Finally, spray outside of gloves with #{disinfectant.bold}."
+      end
     end
 
     show do
@@ -795,6 +799,6 @@ module OLALib
       note "<img class=\"clipimg#{display_section}\" src=\"#{upload.expiring_url}\" width=\"#{size}\"></img>"
     end
     ShowBlock.new(self).run(&p)
-end
+  end
 end
 
