@@ -6,7 +6,7 @@
 # OLASimple PCR
 # author: Justin Vrana
 # date: March 2018
-# updated version: January 19, 2023
+# updated version: June 21, 2023
 #
 ##########################################
 
@@ -219,7 +219,6 @@ class Protocol
       end
 
       show_open_package(kit_and_unit, '', ops.first.temporary[:pack_hash][NUM_SUB_PACKAGES_FIELD_VALUE]) do
-        # img
         pcr_tube_labels = ops.map { |op| op.output_tube_label(OUTPUT) }
 
         num_samples = ops.first.temporary[:pack_hash][NUM_SAMPLES_FIELD_VALUE]
@@ -239,7 +238,7 @@ class Protocol
 
         check "Look for #{num_samples + 1} #{'tube'.pluralize(num_samples)}"
         check 'Place tubes on a rack'
-        check "Label 'A2001' and 'A2002' on side and lid of corresponding tubes." 
+        check "Label #{pcr_tube_labels[0].join()} and #{pcr_tube_labels[1].join()} on side and lid of corresponding tubes." 
         note display_svg(img, 0.75)
       end
     end
