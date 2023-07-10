@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-# Updated version: March 29, 2023
+# Updated version: July 10, 2023
 needs 'OLASimple/OLAConstants'
 needs 'OLASimple/OLALib'
 needs 'OLASimple/OLAGraphics'
@@ -79,7 +79,6 @@ class Protocol
     2.times do
       show do
           title "CENTRIFUGE AND CHANGE RUN BEFORE ADDING WASH 1 and 2"
-          note "READDED SECOND RUN OF THESE STEPS -- check that this is correct "
       end
       operations.each { |op| add_sample_to_column(op) }
       centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}", speed: 8000)
@@ -93,14 +92,11 @@ class Protocol
     add_wash_2 # E3
     centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}", speed: "14000", centrifuge_time: "3 Minutes")
 
-    # 2.times do
       show do
           title "CHANGE AND CENTRIFUGE AFTER ADDING WASH BUFFERS"
-          note "REMOVED CHANGE TUBES STEP HERE"
-          note "REMOVED ONE CENTRIFUGE STEP"
+          title "CHECK THAT THIS STEP SHOULD STILL BE HERE"
       end
-    #   centrifuge_columns(flow_instructions: '<b>DO NOT DISCARD FLOW THROUGH</b>', extra_warning: 'DO NOT DISCARD FLOW THROUGH', speed: 14000)
-    # end
+      centrifuge_columns(flow_instructions: '<b>DO NOT DISCARD FLOW THROUGH</b>', extra_warning: 'DO NOT DISCARD FLOW THROUGH', speed: 14000)
 
     transfer_column_to_e6 # 53
     elute # 54
