@@ -6,7 +6,7 @@
 # OLASimple Detection
 # author: Justin Vrana
 # date: March 2018
-# updated version: March 19, 2023
+# updated version: July 10, 2023
 ##########################################
 
 needs 'OLASimple/OLAConstants'
@@ -114,7 +114,7 @@ class Protocol
     read_from_scanner(sorted_ops.running)
 
     discard_things(sorted_ops.running)
-    clean_area(AREA)
+    clean_area(AREA, gloves = false)
     wash_self
     conclusion sorted_ops
     accept_comments
@@ -209,11 +209,20 @@ class Protocol
       stopTube.align_with(goldTube, 'top-right').translate!(50)
       img = SVGElement.new(children: [grid, diluentATube, goldTube, stopTube], boundx: 500, boundy: 220)
 
-      show_open_package(kit, THIS_UNIT, NUM_SUB_PACKAGES) do
-        note "Check that there are the following tubes and #{STRIPS}:"
+
+      show do
+        title "Tear open #{kit.bold}#{THIS_UNIT.bold}"
+        note 'Tear open all smaller packages.'
+		note "Check that there are the following tubes and #{STRIPS}:"
         note "Strips will be in one connected cassette, not separated as shown below."
         note display_svg(img, 1.0)
+        check 'Discard the packaging material.'
       end
+    #   show_open_package(kit, THIS_UNIT, NUM_SUB_PACKAGES) do
+    #     note "Check that there are the following tubes and #{STRIPS}:"
+    #     note "Strips will be in one connected cassette, not separated as shown below."
+    #     note display_svg(img, 1.0)
+    #   end
     end
   end
 
@@ -528,7 +537,7 @@ class Protocol
   end
 
   def read_from_scanner(myops)
-    debug = true
+    # debug = true
     gops = group_packages(myops)
     show do
       title "Bring #{pluralizer(STRIP, myops.length * PREV_COMPONENTS.length)} to the #{PHOTOCOPIER}."
@@ -553,20 +562,33 @@ class Protocol
         show do
           title "Scan #{STRIPS} <b>#{labels[0]} to #{labels[-1]}</b>"
           check "Open #{PHOTOCOPIER}"
-          check "Place #{STRIPS} face down in the #{PHOTOCOPIER}"
-          check "Align colored part of #{STRIPS} with the colored tape on the #{PHOTOCOPIER}"
+        #   check "Place #{STRIPS} face down in the #{PHOTOCOPIER}"
+          check "Place the cassette face down against the bottem edge of the #{PHOTOCOPIER} and between the tapes indicated by the black arrows."
+          check "Make sure the sticker label is on the side touching the edge closest to you."
+        #   check "Align colored part of #{STRIPS} with the colored tape on the #{PHOTOCOPIER}"
           check "Close the #{PHOTOCOPIER}"
         end
+        # 1) Place the cassette face down against the bottom edge of the scanner. Make sure the sticker label is on the side touching the edge. 
+
+        # 2) Position the cassette between the tapes indicated by the black arrows. 
+        
 
         image_confirmed = false
 
         5.times.each do |_this_try|
           next if image_confirmed
 
+        #   show do
+        #     title 'Scan the image'
+        #     check "Press the <b>\"AUTO SCAN\"</b> button firmly on the side of the #{PHOTOCOPIER} and hold for a few seconds. A new window should pop up, with a green bar indicating scanning in progress."
+        #     check "Wait for #{PHOTOCOPIER} to complete. This takes about 1 minute."
+        #   end
+          
           show do
             title 'Scan the image'
-            check "Press the <b>\"AUTO SCAN\"</b> button firmly on the side of the #{PHOTOCOPIER} and hold for a few seconds. A new window should pop up, with a green bar indicating scanning in progress."
-            check "Wait for #{PHOTOCOPIER} to complete. This takes about 1 minute."
+            check "Locate the IJ Scan Utility application on the desktop."
+            check "Open it and click on the 'Photo' button from the Menu options."
+            check "Wait for the image to scan (it should take about 30s). Once the scanning is complete, the image should pop up in the folder it is automatically saved to as a .jpg file. "
           end
 
           rename = '<md-button ng-disabled="true" class="md-raised">rename</md-button>'
@@ -592,16 +614,30 @@ class Protocol
           op.temporary[SCANNED_IMAGE_UPLOAD_KEY] = Upload.find(DEBUG_UPLOAD_ID) if debug # false upload if debug
           
 
-
-          confirmed = show do
-            title "Confirm image labels say #{op.temporary[:label_string].bold}"
-            select %w[yes no], var: 'confirmed', label: 'Do the image labels and your image match?', default: 0
+        # Process when images display correctly
+        #   confirmed = show do
+        #     title "Confirm image labels say #{op.temporary[:label_string].bold}"
+        #     select %w[yes no], var: 'confirmed', label: 'Do the image labels and your image match?', default: 0
+        #     img = display_strip_panel(*op.output_tokens(OUTPUT), COLORS[idx]).g
+        #     img.boundy = 50
+        #     img.boundx = 750
+        #     note display_svg(img, 0.75)
+        #     raw display_upload(op.temporary[SCANNED_IMAGE_UPLOAD_KEY])
+        #   end
+        
+        # work around because images are not displaying correctly
+        confirmed = show do
+            title "Confirm that you have saved the image under the name #{op.temporary[:filename].bold}"
+            note "Check that the image labels are readable."
+            note "Image labels should read #{op.temporary[:label_string].bold}:"
             img = display_strip_panel(*op.output_tokens(OUTPUT), COLORS[idx]).g
             img.boundy = 50
             img.boundx = 750
             note display_svg(img, 0.75)
-            raw display_upload(op.temporary[SCANNED_IMAGE_UPLOAD_KEY])
-          end
+            note "__"
+            select %w[yes no], var: 'confirmed', label: 'Does the image have the correct name and are the labels clear?', default: 0
+        end # confirmed
+        
 
           image_confirmed = confirmed[:confirmed] == 'yes'
 
@@ -653,6 +689,7 @@ class Protocol
     show do
       title 'Thank you!'
       note 'Thank you for your hard work.'
+      note 'You should proceed to the final protocol immediately.'
     end
   end
 
