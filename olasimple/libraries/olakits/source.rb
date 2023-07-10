@@ -94,7 +94,7 @@ module OLAKits
         
         "analysis" => {
              "Mutation Labels" => [
-                "M41L", "K65R", "L74I", "K103N", "Y115F", "Y181C", "M184V", "G190A", "T215F/Y", "NTC"
+                "M41L", "K65R", "L74I", "K103N", "Y115F", "Y181C", "M184V", "G190A", "T215F/Y", "NC"
             ],
             "Mutation Colors" => ["red", "green","yellow", "blue", "purple", "white", "gray", "red", "green", "yellow"]
         }
