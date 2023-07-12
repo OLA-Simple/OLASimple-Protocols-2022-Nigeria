@@ -77,9 +77,9 @@ class Protocol
     add_ethanol
 
     2.times do
-      show do
-          title "CENTRIFUGE AND CHANGE RUN BEFORE ADDING WASH 1 and 2"
-      end
+    #   show do
+    #       title "CENTRIFUGE AND CHANGE RUN BEFORE ADDING WASH 1 and 2"
+    #   end
       operations.each { |op| add_sample_to_column(op) }
       centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}", speed: 8000)
       change_collection_tubes
@@ -92,11 +92,11 @@ class Protocol
     add_wash_2 # E3
     centrifuge_columns(flow_instructions: "Discard flow through into #{GuSCN_WASTE}", speed: "14000", centrifuge_time: "3 Minutes")
 
-      show do
-          title "CHANGE AND CENTRIFUGE AFTER ADDING WASH BUFFERS"
-          title "CHECK THAT THIS STEP SHOULD STILL BE HERE"
-      end
-      centrifuge_columns(flow_instructions: '<b>DO NOT DISCARD FLOW THROUGH</b>', extra_warning: 'DO NOT DISCARD FLOW THROUGH', speed: 14000)
+    #   show do
+    #       title "CHANGE AND CENTRIFUGE AFTER ADDING WASH BUFFERS"
+    #       title "CHECK THAT THIS STEP SHOULD STILL BE HERE -- removed 7/12"
+    #   end
+    #   centrifuge_columns(flow_instructions: '<b>DO NOT DISCARD FLOW THROUGH</b>', extra_warning: 'DO NOT DISCARD FLOW THROUGH', speed: 14000)
 
     transfer_column_to_e6 # 53
     elute # 54
@@ -425,9 +425,9 @@ class Protocol
 
   COLUMN_VOLUME = 630 
   def add_sample_to_column(op)
-    show do
-        title "ADD SAMPLE TO COLUMN"
-    end
+    # show do
+    #     title "ADD SAMPLE TO COLUMN"
+    # end
     from = "#{LYSIS_BUFFER}-#{op.temporary[:output_sample]}"
     to = "#{SAMPLE_COLUMN}-#{op.temporary[:output_sample]}"
     from_svg = draw_svg(:E1_closed, svg_label: from.sub('-', "\n"))
