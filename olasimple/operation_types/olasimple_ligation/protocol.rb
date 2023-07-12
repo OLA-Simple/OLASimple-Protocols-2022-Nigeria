@@ -6,7 +6,7 @@
 # OLASimple Ligation
 # author: Justin Vrana
 # date: March 2018
-# updated version: March 27, 2023
+# updated version: July 10, 2023
 ##########################################
 
 needs 'OLASimple/OLAConstants'
@@ -94,7 +94,7 @@ class Protocol
     get_ligation_packages(operations.running)
     validate_ligation_packages(operations.running)
     open_ligation_packages(operations.running)
-    # # check_for_tube_defects operations.running
+    # check_for_tube_defects operations.running
     centrifuge_samples(sorted_ops.running)
     rehydrate_ligation_mix(sorted_ops.running, expert_mode)
     vortex_and_centrifuge_samples(sorted_ops.running)
@@ -193,8 +193,11 @@ class Protocol
       ##################################
       # get output collection references
       #################################
-
-      show_open_package(kit_and_unit, '', ops.first.temporary[:pack_hash][NUM_SUB_PACKAGES_FIELD_VALUE]) do
+      
+      
+      
+      # without show_open_package
+      
         tube = make_tube(closedtube, '', ops.first.tube_label('diluent A'), 'medium')
         num_samples = ops.first.temporary[:pack_hash][NUM_SAMPLES_FIELD_VALUE]
         grid = SVGGrid.new(1, num_samples, 0, 100)
@@ -205,21 +208,52 @@ class Protocol
           ligation_tubes = display_ligation_tubes(*_tokens, COLORS[i])
           stripwell = ligation_tubes.g
           grid.add(stripwell, 0, i)
-        end
+        end # ops each with
+        
         grid.align_with(tube, 'center-right')
         grid.align!('center-left')
         img = SVGElement.new(children: [tube, grid], boundx: 1000, boundy: 300).translate!(30, -50)
-        note 'Check that the following tubes are in the pack:'
-        note 'Colored tubes in the photo will not match the color of the tubes in the package. Refer to the sticker and barcode attached to each tube to confirm which sample it is.'
-        note display_svg(img, 0.75)
-      end
+        
+        show do 
+            note 'Check that the following tubes are in the pack:'
+            note 'Colored tubes in the photo will not match the color of the tubes in the package. Refer to the sticker and barcode attached to each tube to confirm which sample it is.'
+            note display_svg(img, 0.75)
+                    title 'Place strips of tubes into a rack'
+            check "Take #{pluralizer('tube strip', ops.length)} and place them in the plastic racks"
+        end # show do 
+    end #grouping
+  end # open ligation packages 
+      
 
-      show do
-        title 'Place strips of tubes into a rack'
-        check "Take #{pluralizer('tube strip', ops.length)} and place them in the plastic racks"
-      end
-    end
-  end
+    #   show_open_package(kit_and_unit, '', ops.first.temporary[:pack_hash][NUM_SUB_PACKAGES_FIELD_VALUE]) do
+    #     tube = make_tube(closedtube, '', ops.first.tube_label('diluent A'), 'medium')
+    #     num_samples = ops.first.temporary[:pack_hash][NUM_SAMPLES_FIELD_VALUE]
+    #     grid = SVGGrid.new(1, num_samples, 0, 100)
+    #     tokens = ops.first.output_tokens(OUTPUT)
+    #     ops.each_with_index do |op, i|
+    #       _tokens = tokens.dup
+    #       _tokens[-1] = op.temporary[:input_sample]
+    #       ligation_tubes = display_ligation_tubes(*_tokens, COLORS[i])
+    #       stripwell = ligation_tubes.g
+    #       grid.add(stripwell, 0, i)
+    #     end # ops each with
+    #     grid.align_with(tube, 'center-right')
+    #     grid.align!('center-left')
+    #     img = SVGElement.new(children: [tube, grid], boundx: 1000, boundy: 300).translate!(30, -50)
+    #     note 'Check that the following tubes are in the pack:'
+    #     note 'Colored tubes in the photo will not match the color of the tubes in the package. Refer to the sticker and barcode attached to each tube to confirm which sample it is.'
+    #     note display_svg(img, 0.75)
+    #   end # show open package
+
+    #   show do
+    #     title 'Place strips of tubes into a rack'
+    #     check "Take #{pluralizer('tube strip', ops.length)} and place them in the plastic racks"
+    #   end # strop show do
+
+  
+  
+  
+  
 
   def centrifuge_samples(ops)
     labels = ops.map { |op| op.temporary[:label_string] }
