@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Sample Preparation Updated June 21, 2023
+# Sample Preparation Updated July 12, 2023
 #
 needs 'OLASimple/OLAConstants'
 needs 'OLASimple/OLAKitIDs'
@@ -199,8 +199,8 @@ class Protocol
   def vortex_and_centrifuge_plasma
       show do
           title 'Vortex and Centrifuge Thawed Plasma Samples to Ensure Concentration of Virus is Homogenous'
-          check 'Vortex samples for 5 minutes.'
-          check 'Centrifuge samples for 5 minutes.'
+          check 'Vortex samples for 5 seconds.'
+          check 'Centrifuge samples for 5 seconds.'
       end
   end
 
